@@ -1,0 +1,242 @@
+import { useState, useRef, useEffect } from 'react';
+import {
+  Hash, Search, Inbox, HelpCircle, PlusCircle, Gift, Sticker, Smile,
+  Reply, Edit2, Trash2, Copy, X, // <-- Adicionado o X
+  XCircle
+} from 'lucide-react';
+import { useChat, type Message } from '../../contexts/ChatContext';
+
+import {
+  Container, Header, HeaderTitle, HeaderIcons, SearchInput,
+  MessagesList, MessageItem, Avatar, MessageContent,
+  MessageHeader, Text, InputWrapper, InputContainer, RightIcons,
+  ContextMenuWrapper, ContextMenuItem, ContextMenuDivider,
+  EditMessageContainer, EditInput, EditHelper,
+  ModalOverlay, ModalContainer, ModalHeader, ModalContent, // <-- Novos Estilos
+  MessagePreviewBox, ModalTip, ModalFooter,                 // <-- Novos Estilos
+  ReplyBanner,
+  RepliedMessageWrapper
+} from './styles';
+
+export function ChatArea() {
+  const { currentUser, globalServer, activeChannelId, messages, sendMessage, deleteMessage, editMessage } = useChat();
+  const [inputValue, setInputValue] = useState('');
+
+  const [contextMenu, setContextMenu] = useState<{ x: number, y: number, message: Message } | null>(null);
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editingContent, setEditingContent] = useState('');
+  const [messageToDelete, setMessageToDelete] = useState<Message | null>(null);
+
+  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  useEffect(() => {
+    const handleClickOutside = () => setContextMenu(null);
+    window.addEventListener('click', handleClickOutside);
+    return () => window.removeEventListener('click', handleClickOutside);
+  }, []);
+
+  const activeChannel = globalServer?.channels.find(c => c.id === activeChannelId);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && inputValue.trim() !== '') {
+      sendMessage(inputValue, replyingTo?.id); // Envia o ID da resposta (se houver)
+      setInputValue('');
+      setReplyingTo(null); // Limpa o estado após enviar
+    }
+  };
+
+  const handleContextMenu = (e: React.MouseEvent, message: Message) => {
+    e.preventDefault();
+    const x = e.pageX + 220 > window.innerWidth ? window.innerWidth - 230 : e.pageX;
+    const y = e.pageY + 200 > window.innerHeight ? window.innerHeight - 210 : e.pageY;
+    setContextMenu({ x, y, message });
+  };
+
+  const handleReply = () => {
+    if (!contextMenu) return;
+    setInputValue(`@${contextMenu.message.user.username} `);
+    setContextMenu(null);
+  };
+
+  const handleReplyClick = () => {
+    if (!contextMenu) return;
+    setReplyingTo(contextMenu.message);
+    setContextMenu(null);
+    // document.getElementById('chat-input')?.focus(); // Opcional: focar no input
+  };
+
+  const startEditing = () => {
+    if (!contextMenu) return;
+    setEditingMessageId(contextMenu.message.id);
+    setEditingContent(contextMenu.message.content);
+    setContextMenu(null);
+  };
+
+  const cancelEditing = () => {
+    setEditingMessageId(null);
+    setEditingContent('');
+  };
+
+  const saveEditing = (msgId: string) => {
+    if (editingContent.trim() !== '') editMessage(msgId, editingContent);
+    cancelEditing();
+  };
+
+  const handleEditKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, msgId: string) => {
+    if (e.key === 'Escape') cancelEditing();
+    else if (e.key === 'Enter') { e.preventDefault(); saveEditing(msgId); }
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    if (!contextMenu) return;
+    if (e.shiftKey) deleteMessage(contextMenu.message.id);
+    else setMessageToDelete(contextMenu.message);
+    setContextMenu(null);
+  };
+
+  const confirmDelete = () => {
+    if (messageToDelete) {
+      deleteMessage(messageToDelete.id);
+      setMessageToDelete(null); // Fecha o modal
+    }
+  };
+
+  if (!activeChannel) return <Container />;
+
+  return (
+    <Container>
+      <Header>
+        <HeaderTitle><Hash size={24} color="#80848E" /><strong>{activeChannel.name}</strong></HeaderTitle>
+        <HeaderIcons>
+          <SearchInput><input type="text" placeholder="Buscar" /><Search size={16} /></SearchInput>
+          <button><Inbox size={24} /></button>
+          <button><HelpCircle size={24} /></button>
+        </HeaderIcons>
+      </Header>
+
+      <MessagesList>
+        {messages.map((msg) => (
+          <MessageItem key={msg.id} onContextMenu={(e) => handleContextMenu(e, msg)} style={{ marginTop: msg.replyTo ? '24px' : '12px' }}>
+
+            {/* O Avatar desce um pouquinho visualmente se houver uma resposta em cima dele, controlamos isso no align-self depois se precisar, mas o flex já cuida bem disso */}
+            <Avatar style={{ backgroundColor: '#5865F2', marginTop: msg.replyTo ? '20px' : '0' }}>
+              {msg.user.username.charAt(0).toUpperCase()}
+            </Avatar>
+
+            <MessageContent style={{ width: '100%' }}>
+
+              {msg.replyTo && (
+                <RepliedMessageWrapper>
+                  <div className="tiny-avatar">{msg.replyTo.user.username.charAt(0).toUpperCase()}</div>
+                  <strong>@{msg.replyTo.user.username}</strong>
+                  <span className="reply-text">{msg.replyTo.content}</span>
+                </RepliedMessageWrapper>
+              )}
+
+              <MessageHeader>
+                <strong>{msg.user.username}</strong>
+                <span>{new Date(msg.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+              </MessageHeader>
+
+              {editingMessageId === msg.id ? (
+                <EditMessageContainer>
+                  <EditInput autoFocus value={editingContent} onChange={(e) => setEditingContent(e.target.value)} onKeyDown={(e) => handleEditKeyDown(e, msg.id)} />
+                  <EditHelper>esc para <span onClick={cancelEditing}>cancelar</span> • enter para <span onClick={() => saveEditing(msg.id)}>salvar</span></EditHelper>
+                </EditMessageContainer>
+              ) : (
+                <Text>{msg.content}</Text>
+              )}
+            </MessageContent>
+          </MessageItem>
+        ))}
+        <div ref={messagesEndRef} />
+      </MessagesList>
+
+      <InputWrapper>
+        {replyingTo && (
+          <ReplyBanner>
+            <div>Respondendo para <strong>@{replyingTo.user.username}</strong></div>
+            <button onClick={() => setReplyingTo(null)}><XCircle size={16} fill="#949BA4" color="#2B2D31" /></button>
+          </ReplyBanner>
+        )}
+
+        <InputContainer style={{ borderTopLeftRadius: replyingTo ? '0' : '8px', borderTopRightRadius: replyingTo ? '0' : '8px' }}>
+          <button className="add-btn"><PlusCircle size={24} /></button>
+          <input
+            id="chat-input"
+            type="text"
+            placeholder={replyingTo ? `Conversar em #${activeChannel.name}` : `Conversar em #${activeChannel.name}`}
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={handleKeyDown}
+          />
+          <RightIcons>
+            <button><Gift size={24} /></button><button><Sticker size={24} /></button><button><Smile size={24} /></button>
+          </RightIcons>
+        </InputContainer>
+      </InputWrapper>
+
+      {contextMenu && (
+        <ContextMenuWrapper $top={contextMenu.y} $left={contextMenu.x} onClick={(e) => e.stopPropagation()}>
+          <ContextMenuItem onClick={handleReplyClick}>
+            Responder <Reply size={16} />
+          </ContextMenuItem>
+          <ContextMenuItem onClick={() => { navigator.clipboard.writeText(contextMenu.message.content); setContextMenu(null); }}>
+            Copiar texto <Copy size={16} />
+          </ContextMenuItem>
+
+          {currentUser?.id === contextMenu.message.user.id && (
+            <>
+              <ContextMenuDivider />
+              <ContextMenuItem onClick={startEditing}>Editar mensagem <Edit2 size={16} /></ContextMenuItem>
+              <ContextMenuItem $danger onClick={handleDeleteClick}>Excluir mensagem <Trash2 size={16} /></ContextMenuItem>
+            </>
+          )}
+        </ContextMenuWrapper>
+      )}
+
+      {messageToDelete && (
+        <ModalOverlay onClick={() => setMessageToDelete(null)}>
+          <ModalContainer onClick={(e) => e.stopPropagation()}>
+            <ModalHeader>
+              <h2>Excluir mensagem</h2>
+              <button onClick={() => setMessageToDelete(null)}><X size={24} /></button>
+            </ModalHeader>
+
+            <ModalContent>
+              <p>Deseja mesmo excluir essa mensagem?</p>
+
+              <MessagePreviewBox>
+                <Avatar style={{ backgroundColor: '#5865F2', width: '32px', height: '32px', fontSize: '14px', marginRight: '12px' }}>
+                  {messageToDelete.user.username.charAt(0).toUpperCase()}
+                </Avatar>
+                <MessageContent>
+                  <MessageHeader>
+                    <strong>{messageToDelete.user.username}</strong>
+                    <span>{new Date(messageToDelete.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+                  </MessageHeader>
+                  <Text>{messageToDelete.content}</Text>
+                </MessageContent>
+              </MessagePreviewBox>
+
+              <ModalTip>
+                <strong>FICA A DICA:</strong> Você pode pressionar <span>Shift</span> enquanto clica em <strong>excluir mensagem</strong> para ignorar a confirmação completamente.
+              </ModalTip>
+            </ModalContent>
+
+            <ModalFooter>
+              <button className="cancel" onClick={() => setMessageToDelete(null)}>Cancelar</button>
+              <button className="delete" onClick={confirmDelete}>Excluir</button>
+            </ModalFooter>
+          </ModalContainer>
+        </ModalOverlay>
+      )}
+    </Container>
+  );
+}
