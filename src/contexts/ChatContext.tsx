@@ -10,8 +10,8 @@ export interface Message {
   createdAt: string;
   user: User;
   channelId: string;
-  replyToId?: string; // NOVO
-  replyTo?: {         // NOVO
+  replyToId?: string;
+  replyTo?: {
     id: string;
     content: string;
     user: { username: string };
@@ -24,10 +24,11 @@ interface ChatContextData {
   activeChannelId: string | null;
   changeChannel: (channelId: string) => void;
   isLoading: boolean;
+  connectAsGuest: (username: string) => Promise<void>; // <-- Nova Função Adicionada
   messages: Message[];
   sendMessage: (content: string, replyToId?: string) => void;
-  deleteMessage: (messageId: string) => void; // NOVO
-  editMessage: (messageId: string, newContent: string) => void; // NOVO
+  deleteMessage: (messageId: string) => void;
+  editMessage: (messageId: string, newContent: string) => void;
 }
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
@@ -39,65 +40,17 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [globalServer, setGlobalServer] = useState<Server | null>(null);
   const [activeChannelId, setActiveChannelId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // <-- Agora começa como false
 
   const [messages, setMessages] = useState<Message[]>([]);
   const ws = useRef<WebSocket | null>(null);
 
+  // Fecha o WebSocket se o usuário fechar a aba
   useEffect(() => {
-    async function init() {
-      try {
-        const response = await fetch(`${API_URL}/users/guest`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-        });
-        const data = await response.json();
-        setCurrentUser(data.user);
-        setGlobalServer(data.globalServer);
-
-        if (data.globalServer?.channels?.length > 0) {
-          setActiveChannelId(data.globalServer.channels[0].id);
-        }
-
-        ws.current = new WebSocket(WS_URL);
-        ws.current.onopen = () => console.log('🟢 WebSocket Conectado!');
-
-        ws.current.onmessage = (event) => {
-          const payload = JSON.parse(event.data);
-
-          // 1. CHEGOU MENSAGEM NOVA
-          if (payload.event === 'newMessage') {
-            const novaMensagem = payload.data as Message;
-            setMessages((prev) => {
-              if (prev.some(m => m.id === novaMensagem.id)) return prev;
-              return [...prev, novaMensagem];
-            });
-          }
-
-          // 2. MENSAGEM FOI DELETADA
-          if (payload.event === 'messageDeleted') {
-            setMessages((prev) => prev.filter(m => m.id !== payload.data.messageId));
-          }
-
-          // 3. MENSAGEM FOI EDITADA
-          if (payload.event === 'messageEdited') {
-            const mensagemEditada = payload.data as Message;
-            setMessages((prev) => prev.map(m => m.id === mensagemEditada.id ? mensagemEditada : m));
-          }
-        };
-
-        ws.current.onclose = () => console.log('🔴 WebSocket Desconectado');
-        setIsLoading(false);
-      } catch (error) {
-        console.error('Erro na inicialização:', error);
-        setIsLoading(false);
-      }
-    }
-    init();
-
     return () => { ws.current?.close(); };
   }, []);
 
+  // Busca mensagens sempre que mudar de canal
   useEffect(() => {
     if (activeChannelId) {
       fetch(`${API_URL}/channels/${activeChannelId}/messages`)
@@ -107,20 +60,60 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     }
   }, [activeChannelId]);
 
+  // Função chamada pelo Modal para criar o usuário e conectar
+  const connectAsGuest = async (username: string) => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/users/guest`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username }), // <-- Enviamos o nome digitado!
+      });
+      const data = await response.json();
+      setCurrentUser(data.user);
+      setGlobalServer(data.globalServer);
+
+      if (data.globalServer?.channels?.length > 0) {
+        setActiveChannelId(data.globalServer.channels[0].id);
+      }
+
+      // Conecta no WebSocket após criar o usuário
+      ws.current = new WebSocket(WS_URL);
+      ws.current.onopen = () => console.log('🟢 WebSocket Conectado!');
+
+      ws.current.onmessage = (event) => {
+        const payload = JSON.parse(event.data);
+
+        if (payload.event === 'newMessage') {
+          setMessages((prev) => {
+            if (prev.some(m => m.id === payload.data.id)) return prev;
+            return [...prev, payload.data];
+          });
+        }
+        if (payload.event === 'messageDeleted') {
+          setMessages((prev) => prev.filter(m => m.id !== payload.data.messageId));
+        }
+        if (payload.event === 'messageEdited') {
+          setMessages((prev) => prev.map(m => m.id === payload.data.id ? payload.data : m));
+        }
+      };
+
+      ws.current.onclose = () => console.log('🔴 WebSocket Desconectado');
+    } catch (error) {
+      console.error('Erro na inicialização:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const changeChannel = (channelId: string) => setActiveChannelId(channelId);
 
   const sendMessage = (content: string, replyToId?: string) => {
     if (!content.trim() || !ws.current || !currentUser || !activeChannelId) return;
-
     if (ws.current.readyState === WebSocket.OPEN) {
       ws.current.send(JSON.stringify({
         event: 'sendMessage',
-        data: {
-          channelId: activeChannelId,
-          userId: currentUser.id,
-          content: content,
-          replyToId: replyToId // NOVO
-        }
+        data: { channelId: activeChannelId, userId: currentUser.id, content, replyToId }
       }));
     }
   };
@@ -140,7 +133,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <ChatContext.Provider value={{ currentUser, globalServer, activeChannelId, changeChannel, isLoading, messages, sendMessage, deleteMessage, editMessage }}>
+    <ChatContext.Provider value={{ currentUser, globalServer, activeChannelId, changeChannel, isLoading, connectAsGuest, messages, sendMessage, deleteMessage, editMessage }}>
       {children}
     </ChatContext.Provider>
   );

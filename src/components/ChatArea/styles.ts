@@ -285,7 +285,7 @@ export const EditHelper = styled.div`
   margin-top: 6px;
 
   span {
-    color: #00AFF4; /* Azul característico de links do Discord */
+    color: #00AFF4;
     cursor: pointer;
 
     &:hover {
@@ -442,7 +442,6 @@ export const RepliedMessageWrapper = styled.div`
 
   &:hover { color: #DBDEE1; }
 
-  /* A famosa linha curva do Discord */
   &::before {
     content: '';
     position: absolute;
