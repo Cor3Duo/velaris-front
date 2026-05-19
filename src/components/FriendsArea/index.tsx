@@ -32,7 +32,7 @@ export function FriendsArea() {
         <MainColumn>
           <InputSection>
             <h2>Adicionar amigo</h2>
-            <p>Você pode adicionar amigos com o nome de usuário Discord deles.</p>
+            <p>Você pode adicionar amigos com o nome de usuário Velaris deles.</p>
 
             <AddFriendInput>
               <input type="text" placeholder="Insira um nome de usuário" />

@@ -38,7 +38,6 @@ export const ScrollArea = styled.div`
   overflow-y: auto;
   padding: 8px;
 
-  /* Estilizando a barra de rolagem para ficar igual ao Discord */
   &::-webkit-scrollbar {
     width: 4px;
   }
