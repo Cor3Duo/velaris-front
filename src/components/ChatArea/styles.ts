@@ -101,13 +101,37 @@ export const MessagesList = styled.div`
   }
 `;
 
-export const MessageItem = styled.div`
+export const MessageItem = styled.div<{ $isGrouped?: boolean }>`
   display: flex;
-  padding: 4px 16px;
-  margin-top: 12px;
+  align-items: flex-start;
+  padding: 2px 16px;
+  margin-top: ${(props) => (props.$isGrouped ? '0' : '16px')};
 
   &:hover {
-    background-color: #2E3035; /* Efeito de hover suave nas mensagens */
+    background-color: #2E3035;
+
+    /* Quando passa o mouse, mostra a hora na mensagem agrupada */
+    .grouped-time {
+      display: inline-block;
+    }
+  }
+`;
+
+export const AvatarContainer = styled.div<{ $isGrouped?: boolean }>`
+  width: 40px;
+  margin-right: 16px;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: ${(props) => (props.$isGrouped ? '2px' : '0')};
+
+  /* Estilo da hora que aparece ao passar o mouse */
+  .grouped-time {
+    display: none;
+    font-size: 11px;
+    color: #949BA4;
+    user-select: none;
   }
 `;
 
@@ -115,14 +139,12 @@ export const Avatar = styled.div`
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
   font-weight: bold;
   font-size: 18px;
-  margin-right: 16px;
   cursor: pointer;
 `;
 

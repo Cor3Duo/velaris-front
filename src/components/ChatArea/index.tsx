@@ -1,21 +1,22 @@
+// src/components/ChatArea/index.tsx
+
 import { useState, useRef, useEffect } from 'react';
 import {
   Hash, Search, Inbox, HelpCircle, PlusCircle, Gift, Sticker, Smile,
-  Reply, Edit2, Trash2, Copy, X, // <-- Adicionado o X
+  Reply, Edit2, Trash2, Copy, X,
   XCircle
 } from 'lucide-react';
 import { useChat, type Message } from '../../contexts/ChatContext';
 
 import {
   Container, Header, HeaderTitle, HeaderIcons, SearchInput,
-  MessagesList, MessageItem, Avatar, MessageContent,
+  MessagesList, MessageItem, AvatarContainer, Avatar, MessageContent,
   MessageHeader, Text, InputWrapper, InputContainer, RightIcons,
   ContextMenuWrapper, ContextMenuItem, ContextMenuDivider,
   EditMessageContainer, EditInput, EditHelper,
-  ModalOverlay, ModalContainer, ModalHeader, ModalContent, // <-- Novos Estilos
-  MessagePreviewBox, ModalTip, ModalFooter,                 // <-- Novos Estilos
-  ReplyBanner,
-  RepliedMessageWrapper
+  ModalOverlay, ModalContainer, ModalHeader, ModalContent,
+  MessagePreviewBox, ModalTip, ModalFooter,
+  ReplyBanner, RepliedMessageWrapper
 } from './styles';
 
 export function ChatArea() {
@@ -45,9 +46,9 @@ export function ChatArea() {
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && inputValue.trim() !== '') {
-      sendMessage(inputValue, replyingTo?.id); // Envia o ID da resposta (se houver)
+      sendMessage(inputValue, replyingTo?.id);
       setInputValue('');
-      setReplyingTo(null); // Limpa o estado após enviar
+      setReplyingTo(null);
     }
   };
 
@@ -62,7 +63,6 @@ export function ChatArea() {
     if (!contextMenu) return;
     setReplyingTo(contextMenu.message);
     setContextMenu(null);
-    // document.getElementById('chat-input')?.focus(); // Opcional: focar no input
   };
 
   const startEditing = () => {
@@ -97,7 +97,7 @@ export function ChatArea() {
   const confirmDelete = () => {
     if (messageToDelete) {
       deleteMessage(messageToDelete.id);
-      setMessageToDelete(null); // Fecha o modal
+      setMessageToDelete(null);
     }
   };
 
@@ -115,40 +115,63 @@ export function ChatArea() {
       </Header>
 
       <MessagesList>
-        {messages.map((msg) => (
-          <MessageItem key={msg.id} onContextMenu={(e) => handleContextMenu(e, msg)} style={{ marginTop: msg.replyTo ? '24px' : '12px' }}>
+        {messages.map((msg, index) => {
+          const prevMsg = index > 0 ? messages[index - 1] : null;
 
-            {/* O Avatar desce um pouquinho visualmente se houver uma resposta em cima dele, controlamos isso no align-self depois se precisar, mas o flex já cuida bem disso */}
-            <Avatar style={{ backgroundColor: '#5865F2', marginTop: msg.replyTo ? '20px' : '0' }}>
-              {msg.user.username.charAt(0).toUpperCase()}
-            </Avatar>
+          const isSameUser = prevMsg?.user.id === msg.user.id;
 
-            <MessageContent style={{ width: '100%' }}>
+          const timeDiff = prevMsg ? new Date(msg.createdAt).getTime() - new Date(prevMsg.createdAt).getTime() : 0;
+          const isWithin5Min = timeDiff < 5 * 60 * 1000;
+          const isReply = !!msg.replyTo;
 
-              {msg.replyTo && (
-                <RepliedMessageWrapper>
-                  <div className="tiny-avatar">{msg.replyTo.user.username.charAt(0).toUpperCase()}</div>
-                  <strong>@{msg.replyTo.user.username}</strong>
-                  <span className="reply-text">{msg.replyTo.content}</span>
-                </RepliedMessageWrapper>
-              )}
+          const isGrouped = Boolean(isSameUser && isWithin5Min && !isReply);
 
-              <MessageHeader>
-                <strong>{msg.user.username}</strong>
-                <span>{new Date(msg.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
-              </MessageHeader>
+          return (
+            <MessageItem
+              key={msg.id}
+              $isGrouped={isGrouped}
+              onContextMenu={(e) => handleContextMenu(e, msg)}
+            >
+              <AvatarContainer $isGrouped={isGrouped}>
+                {isGrouped ? (
+                  <span className="grouped-time">
+                    {new Date(msg.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                ) : (
+                  <Avatar style={{ backgroundColor: '#5865F2', marginTop: isReply ? '20px' : '0' }}>
+                    {msg.user.username.charAt(0).toUpperCase()}
+                  </Avatar>
+                )}
+              </AvatarContainer>
 
-              {editingMessageId === msg.id ? (
-                <EditMessageContainer>
-                  <EditInput autoFocus value={editingContent} onChange={(e) => setEditingContent(e.target.value)} onKeyDown={(e) => handleEditKeyDown(e, msg.id)} />
-                  <EditHelper>esc para <span onClick={cancelEditing}>cancelar</span> • enter para <span onClick={() => saveEditing(msg.id)}>salvar</span></EditHelper>
-                </EditMessageContainer>
-              ) : (
-                <Text>{msg.content}</Text>
-              )}
-            </MessageContent>
-          </MessageItem>
-        ))}
+              <MessageContent style={{ width: '100%' }}>
+                {isReply && (
+                  <RepliedMessageWrapper>
+                    <div className="tiny-avatar">{msg.replyTo!.user.username.charAt(0).toUpperCase()}</div>
+                    <strong>@{msg.replyTo!.user.username}</strong>
+                    <span className="reply-text">{msg.replyTo!.content}</span>
+                  </RepliedMessageWrapper>
+                )}
+
+                {!isGrouped && (
+                  <MessageHeader>
+                    <strong>{msg.user.username}</strong>
+                    <span>{new Date(msg.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+                  </MessageHeader>
+                )}
+
+                {editingMessageId === msg.id ? (
+                  <EditMessageContainer>
+                    <EditInput autoFocus value={editingContent} onChange={(e) => setEditingContent(e.target.value)} onKeyDown={(e) => handleEditKeyDown(e, msg.id)} />
+                    <EditHelper>esc para <span onClick={cancelEditing}>cancelar</span> • enter para <span onClick={() => saveEditing(msg.id)}>salvar</span></EditHelper>
+                  </EditMessageContainer>
+                ) : (
+                  <Text>{msg.content}</Text>
+                )}
+              </MessageContent>
+            </MessageItem>
+          );
+        })}
         <div ref={messagesEndRef} />
       </MessagesList>
 
@@ -165,7 +188,7 @@ export function ChatArea() {
           <input
             id="chat-input"
             type="text"
-            placeholder={replyingTo ? `Conversar em #${activeChannel.name}` : `Conversar em #${activeChannel.name}`}
+            placeholder={`Conversar em #${activeChannel.name}`}
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -176,6 +199,7 @@ export function ChatArea() {
         </InputContainer>
       </InputWrapper>
 
+      {/* Menus de Contexto e Modais continuam iguais... */}
       {contextMenu && (
         <ContextMenuWrapper $top={contextMenu.y} $left={contextMenu.x} onClick={(e) => e.stopPropagation()}>
           <ContextMenuItem onClick={handleReplyClick}>
@@ -197,15 +221,14 @@ export function ChatArea() {
 
       {messageToDelete && (
         <ModalOverlay onClick={() => setMessageToDelete(null)}>
+          {/* Modal de excluir mensagem continua igual */}
           <ModalContainer onClick={(e) => e.stopPropagation()}>
             <ModalHeader>
               <h2>Excluir mensagem</h2>
               <button onClick={() => setMessageToDelete(null)}><X size={24} /></button>
             </ModalHeader>
-
             <ModalContent>
               <p>Deseja mesmo excluir essa mensagem?</p>
-
               <MessagePreviewBox>
                 <Avatar style={{ backgroundColor: '#5865F2', width: '32px', height: '32px', fontSize: '14px', marginRight: '12px' }}>
                   {messageToDelete.user.username.charAt(0).toUpperCase()}
@@ -218,12 +241,10 @@ export function ChatArea() {
                   <Text>{messageToDelete.content}</Text>
                 </MessageContent>
               </MessagePreviewBox>
-
               <ModalTip>
                 <strong>FICA A DICA:</strong> Você pode pressionar <span>Shift</span> enquanto clica em <strong>excluir mensagem</strong> para ignorar a confirmação completamente.
               </ModalTip>
             </ModalContent>
-
             <ModalFooter>
               <button className="cancel" onClick={() => setMessageToDelete(null)}>Cancelar</button>
               <button className="delete" onClick={confirmDelete}>Excluir</button>
