@@ -1,9 +1,7 @@
 import { Container, ServerButton, Separator } from './styles';
-import { useChat } from '../../contexts/ChatContext';
-import { Globe } from 'lucide-react'; // Trocamos o ícone para um Globo
+import { Globe } from 'lucide-react';
 
 export function ServerList() {
-  const { globalServer } = useChat();
 
   return (
     <Container>

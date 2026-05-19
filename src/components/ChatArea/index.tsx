@@ -58,12 +58,6 @@ export function ChatArea() {
     setContextMenu({ x, y, message });
   };
 
-  const handleReply = () => {
-    if (!contextMenu) return;
-    setInputValue(`@${contextMenu.message.user.username} `);
-    setContextMenu(null);
-  };
-
   const handleReplyClick = () => {
     if (!contextMenu) return;
     setReplyingTo(contextMenu.message);
