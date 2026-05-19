@@ -16,6 +16,13 @@ export interface Message {
     content: string;
     user: { username: string };
   };
+  reactions?: Reaction[];
+}
+
+export interface Reaction {
+  id: string;
+  emoji: string;
+  user: { id: string; username: string };
 }
 
 interface ChatContextData {
@@ -29,6 +36,7 @@ interface ChatContextData {
   sendMessage: (content: string, replyToId?: string) => void;
   deleteMessage: (messageId: string) => void;
   editMessage: (messageId: string, newContent: string) => void;
+  toggleReaction: (messageId: string, emoji: string) => void;
 }
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
@@ -96,6 +104,9 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         if (payload.event === 'messageEdited') {
           setMessages((prev) => prev.map(m => m.id === payload.data.id ? payload.data : m));
         }
+        if (payload.event === 'reactionUpdated') {
+          setMessages((prev) => prev.map(m => m.id === payload.data.id ? payload.data : m));
+        }
       };
 
       ws.current.onclose = () => console.log('🔴 WebSocket Desconectado');
@@ -132,8 +143,18 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const toggleReaction = (messageId: string, emoji: string) => {
+    if (!ws.current || !currentUser) return;
+    if (ws.current.readyState === WebSocket.OPEN) {
+      ws.current.send(JSON.stringify({
+        event: 'toggleReaction',
+        data: { messageId, userId: currentUser.id, emoji }
+      }));
+    }
+  };
+
   return (
-    <ChatContext.Provider value={{ currentUser, globalServer, activeChannelId, changeChannel, isLoading, connectAsGuest, messages, sendMessage, deleteMessage, editMessage }}>
+    <ChatContext.Provider value={{ currentUser, globalServer, activeChannelId, changeChannel, isLoading, connectAsGuest, messages, sendMessage, deleteMessage, editMessage, toggleReaction }}>
       {children}
     </ChatContext.Provider>
   );

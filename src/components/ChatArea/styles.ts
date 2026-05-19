@@ -250,7 +250,82 @@ export const ContextMenuWrapper = styled.div<{ $top: number; $left: number }>`
   flex-direction: column;
 `;
 
+export const ReactionBadge = styled.button<{ $active?: boolean }>`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: ${(props) => (props.$active ? '#5865F233' : '#2B2D31')};
+  border: 1px solid ${(props) => (props.$active ? '#5865F2' : 'transparent')};
+  padding: 2px 6px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: .1s;
+
+  font-size: 14px;
+  
+  span {
+    color: ${(props) => (props.$active ? '#F2F3F5' : '#B5BAC1')};
+    font-size: 12px;
+    font-weight: bold;
+  }
+
+  &:hover {
+    background-color: ${(props) => (props.$active ? '#5865F24D' : '#35373C')};
+    border-color: ${(props) => (props.$active ? '#5865F2' : '#4E5058')};
+  }
+`;
+
+export const QuickReactionsBox = styled.div`
+  display: none; /* Só aparece no hover do item pai */
+  position: absolute;
+  top: 0;
+  right: -230px; /* Joga pra direita do menu de contexto */
+  background-color: #111214;
+  border-radius: 4px;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.24);
+  padding: 8px;
+  width: 220px;
+  flex-direction: column;
+  gap: 8px;
+
+  .emoji-list {
+    display: flex;
+    justify-content: space-between;
+
+    button {
+      font-size: 20px;
+      padding: 4px;
+      border-radius: 4px;
+      transition: .2s;
+      
+      &:hover {
+        background-color: #2B2D31;
+        transform: scale(1.1);
+      }
+    }
+  }
+
+  .view-more {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 8px;
+    color: #B5BAC1;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 4px;
+    background-color: #2B2D31;
+
+    &:hover {
+      background-color: #35373C;
+      color: #DBDEE1;
+    }
+  }
+`;
+
 export const ContextMenuItem = styled.div<{ $danger?: boolean }>`
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -265,6 +340,10 @@ export const ContextMenuItem = styled.div<{ $danger?: boolean }>`
   &:hover {
     background-color: ${(props) => (props.$danger ? '#DA373C' : '#5865F2')};
     color: #FFFFFF;
+  }
+
+  &:hover.reaction-menu > ${QuickReactionsBox} {
+    display: flex;
   }
 
   svg {

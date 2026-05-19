@@ -1,10 +1,10 @@
-// src/components/ChatArea/index.tsx
-
 import { useState, useRef, useEffect } from 'react';
+import EmojiPicker, { Theme } from 'emoji-picker-react';
 import {
   Hash, Search, Inbox, HelpCircle, PlusCircle, Gift, Sticker, Smile,
   Reply, Edit2, Trash2, Copy, X,
-  XCircle
+  XCircle,
+  SmilePlus
 } from 'lucide-react';
 import { useChat, type Message } from '../../contexts/ChatContext';
 
@@ -16,11 +16,13 @@ import {
   EditMessageContainer, EditInput, EditHelper,
   ModalOverlay, ModalContainer, ModalHeader, ModalContent,
   MessagePreviewBox, ModalTip, ModalFooter,
-  ReplyBanner, RepliedMessageWrapper
+  ReplyBanner, RepliedMessageWrapper,
+  ReactionBadge,
+  QuickReactionsBox
 } from './styles';
 
 export function ChatArea() {
-  const { currentUser, globalServer, activeChannelId, messages, sendMessage, deleteMessage, editMessage } = useChat();
+  const { currentUser, globalServer, activeChannelId, messages, sendMessage, deleteMessage, editMessage, toggleReaction } = useChat();
   const [inputValue, setInputValue] = useState('');
 
   const [contextMenu, setContextMenu] = useState<{ x: number, y: number, message: Message } | null>(null);
@@ -28,6 +30,8 @@ export function ChatArea() {
   const [editingContent, setEditingContent] = useState('');
   const [messageToDelete, setMessageToDelete] = useState<Message | null>(null);
 
+  const [showEmojiPicker, setShowEmojiPicker] = useState<string | null>(null); // Guarda o ID da mensagem
+  const quickEmojis = ['👍', '🤣', '❤️', '🔥', '😭', '👀'];
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -168,6 +172,27 @@ export function ChatArea() {
                 ) : (
                   <Text>{msg.content}</Text>
                 )}
+                {/* Renderizar as Reações */}
+                {msg.reactions && msg.reactions.length > 0 && (
+                  <div style={{ display: 'flex', gap: '4px', marginTop: '4px', flexWrap: 'wrap' }}>
+                    {Object.entries(
+                      msg.reactions.reduce((acc, curr) => {
+                        if (!acc[curr.emoji]) acc[curr.emoji] = { count: 0, me: false };
+                        acc[curr.emoji].count++;
+                        if (curr.user.id === currentUser?.id) acc[curr.emoji].me = true;
+                        return acc;
+                      }, {} as Record<string, { count: number; me: boolean }>)
+                    ).map(([emoji, data]) => (
+                      <ReactionBadge
+                        key={emoji}
+                        $active={data.me}
+                        onClick={() => toggleReaction(msg.id, emoji)}
+                      >
+                        {emoji} <span>{data.count}</span>
+                      </ReactionBadge>
+                    ))}
+                  </div>
+                )}
               </MessageContent>
             </MessageItem>
           );
@@ -199,12 +224,29 @@ export function ChatArea() {
         </InputContainer>
       </InputWrapper>
 
-      {/* Menus de Contexto e Modais continuam iguais... */}
       {contextMenu && (
         <ContextMenuWrapper $top={contextMenu.y} $left={contextMenu.x} onClick={(e) => e.stopPropagation()}>
-          <ContextMenuItem onClick={handleReplyClick}>
-            Responder <Reply size={16} />
+          <ContextMenuItem className="reaction-menu">
+            Adicionar reação <SmilePlus size={16} />
+
+            {/* O SUBMENU DE REAÇÕES */}
+            <QuickReactionsBox>
+              <div className="emoji-list">
+                {quickEmojis.map(emoji => (
+                  <button key={emoji} onClick={() => { toggleReaction(contextMenu.message.id, emoji); setContextMenu(null); }}>
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+              <button className="view-more" onClick={() => { setShowEmojiPicker(contextMenu.message.id); setContextMenu(null); }}>
+                Ver mais <SmilePlus size={14} />
+              </button>
+            </QuickReactionsBox>
           </ContextMenuItem>
+
+          <ContextMenuDivider />
+
+          <ContextMenuItem onClick={handleReplyClick}>Responder <Reply size={16} /></ContextMenuItem>
           <ContextMenuItem onClick={() => { navigator.clipboard.writeText(contextMenu.message.content); setContextMenu(null); }}>
             Copiar texto <Copy size={16} />
           </ContextMenuItem>
@@ -217,6 +259,21 @@ export function ChatArea() {
             </>
           )}
         </ContextMenuWrapper>
+      )}
+
+      {/* Modal do Emoji Picker Completo */}
+      {showEmojiPicker && (
+        <ModalOverlay onClick={() => setShowEmojiPicker(null)}>
+          <div onClick={(e) => e.stopPropagation()}>
+            <EmojiPicker
+              theme={Theme.DARK}
+              onEmojiClick={(emojiData) => {
+                toggleReaction(showEmojiPicker, emojiData.emoji);
+                setShowEmojiPicker(null);
+              }}
+            />
+          </div>
+        </ModalOverlay>
       )}
 
       {messageToDelete && (
