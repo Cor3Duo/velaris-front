@@ -276,10 +276,10 @@ export const ReactionBadge = styled.button<{ $active?: boolean }>`
 `;
 
 export const QuickReactionsBox = styled.div`
-  display: none; /* Só aparece no hover do item pai */
+  display: none;
   position: absolute;
   top: 0;
-  right: -230px; /* Joga pra direita do menu de contexto */
+  right: -230px;
   background-color: #111214;
   border-radius: 4px;
   box-shadow: 0 8px 16px rgba(0,0,0,0.24);
@@ -287,6 +287,16 @@ export const QuickReactionsBox = styled.div`
   width: 220px;
   flex-direction: column;
   gap: 8px;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -20px; /* Puxa para a esquerda para cobrir o vão */
+    width: 20px; /* A largura cobre a distância até o menu principal */
+    height: 100%;
+    background-color: transparent; /* Mantém invisível */
+  }
 
   .emoji-list {
     display: flex;
