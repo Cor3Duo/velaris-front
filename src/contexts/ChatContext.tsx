@@ -1,6 +1,6 @@
 import { createContext, useState, useEffect, useContext, useRef, type ReactNode } from 'react';
 
-export interface User { id: string; username: string; imageUrl?: string; }
+export interface User { id: string; username: string; imageUrl?: string; email?: string | null; }
 export interface Channel { id: string; name: string; type: string; }
 export interface Server { id: string; name: string; imageUrl?: string; channels: Channel[]; }
 
@@ -25,18 +25,27 @@ export interface Reaction {
   user: { id: string; username: string };
 }
 
+export interface Member {
+  id: string;
+  role: string;
+  user: User;
+}
+
 interface ChatContextData {
   currentUser: User | null;
   globalServer: Server | null;
   activeChannelId: string | null;
   changeChannel: (channelId: string) => void;
   isLoading: boolean;
+  isMessagesLoading: boolean;
   connectAsGuest: (username: string) => Promise<void>; // <-- Nova Função Adicionada
   messages: Message[];
   sendMessage: (content: string, replyToId?: string) => void;
   deleteMessage: (messageId: string) => void;
   editMessage: (messageId: string, newContent: string) => void;
   toggleReaction: (messageId: string, emoji: string) => void;
+  members: Member[];
+  onlineUsers: Set<string>;
 }
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
@@ -49,8 +58,11 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const [globalServer, setGlobalServer] = useState<Server | null>(null);
   const [activeChannelId, setActiveChannelId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false); // <-- Agora começa como false
+  const [isMessagesLoading, setIsMessagesLoading] = useState(false);
 
   const [messages, setMessages] = useState<Message[]>([]);
+  const [members, setMembers] = useState<Member[]>([]);
+  const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
   const ws = useRef<WebSocket | null>(null);
 
   // Fecha o WebSocket se o usuário fechar a aba
@@ -61,10 +73,17 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   // Busca mensagens sempre que mudar de canal
   useEffect(() => {
     if (activeChannelId) {
+      setIsMessagesLoading(true);
       fetch(`${API_URL}/channels/${activeChannelId}/messages`)
         .then(res => res.json())
-        .then(data => setMessages(data))
-        .catch(err => console.error('Erro ao buscar mensagens', err));
+        .then(data => {
+          setMessages(data);
+          setIsMessagesLoading(false);
+        })
+        .catch(err => {
+          console.error('Erro ao buscar mensagens', err);
+          setIsMessagesLoading(false);
+        });
     }
   }, [activeChannelId]);
 
@@ -85,12 +104,58 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         setActiveChannelId(data.globalServer.channels[0].id);
       }
 
+      // Busca membros inicial do servidor
+      if (data.globalServer) {
+        try {
+          const membersRes = await fetch(`${API_URL}/users/servers/${data.globalServer.id}/members`);
+          const membersData = await membersRes.json();
+          setMembers(membersData);
+        } catch (err) {
+          console.error('Erro ao buscar membros inicial:', err);
+        }
+      }
+
       // Conecta no WebSocket após criar o usuário
       ws.current = new WebSocket(WS_URL);
-      ws.current.onopen = () => console.log('🟢 WebSocket Conectado!');
+      ws.current.onopen = () => {
+        console.log('🟢 WebSocket Conectado!');
+        ws.current?.send(JSON.stringify({
+          event: 'identify',
+          data: { userId: data.user.id }
+        }));
+      };
 
       ws.current.onmessage = (event) => {
         const payload = JSON.parse(event.data);
+
+        if (payload.event === 'onlineUsersList') {
+          setOnlineUsers(new Set(payload.data.onlineUserIds));
+        }
+
+        if (payload.event === 'userStatusChanged') {
+          const { userId, status } = payload.data;
+          setOnlineUsers((prev) => {
+            const next = new Set(prev);
+            if (status === 'online') {
+              next.add(userId);
+            } else {
+              next.delete(userId);
+            }
+            return next;
+          });
+
+          // Se um novo usuário ficou online e não o temos na lista de membros, recarrega
+          setMembers((prevMembers) => {
+            const exists = prevMembers.some(m => m.user.id === userId);
+            if (!exists && status === 'online') {
+              fetch(`${API_URL}/users/servers/${data.globalServer.id}/members`)
+                .then(res => res.json())
+                .then(membersList => setMembers(membersList))
+                .catch(err => console.error('Erro ao recarregar membros:', err));
+            }
+            return prevMembers;
+          });
+        }
 
         if (payload.event === 'newMessage') {
           setMessages((prev) => {
@@ -154,7 +219,24 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <ChatContext.Provider value={{ currentUser, globalServer, activeChannelId, changeChannel, isLoading, connectAsGuest, messages, sendMessage, deleteMessage, editMessage, toggleReaction }}>
+    <ChatContext.Provider
+      value={{
+        currentUser,
+        globalServer,
+        activeChannelId,
+        changeChannel,
+        isLoading,
+        isMessagesLoading,
+        connectAsGuest,
+        messages,
+        sendMessage,
+        deleteMessage,
+        editMessage,
+        toggleReaction,
+        members,
+        onlineUsers
+      }}
+    >
       {children}
     </ChatContext.Provider>
   );

@@ -1,4 +1,4 @@
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 
 export const Container = styled.div`
   grid-column: 3;
@@ -592,4 +592,58 @@ export const RepliedMessageWrapper = styled.div`
     text-overflow: ellipsis;
     max-width: 60%;
   }
+`;
+
+/* 4. SKELETON LOADING */
+const shimmer = keyframes`
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+`;
+
+export const SkeletonRow = styled.div`
+  display: flex;
+  align-items: flex-start;
+  padding: 8px 16px;
+  margin-top: 16px;
+`;
+
+export const SkeletonAvatar = styled.div`
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 16px;
+  flex-shrink: 0;
+  background: linear-gradient(90deg, #2E3035 25%, #35373C 50%, #2E3035 75%);
+  background-size: 200% 100%;
+  animation: ${shimmer} 1.5s infinite linear;
+`;
+
+export const SkeletonTextWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 8px;
+  padding-top: 4px;
+`;
+
+export const SkeletonHeader = styled.div`
+  height: 12px;
+  width: 120px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #2E3035 25%, #35373C 50%, #2E3035 75%);
+  background-size: 200% 100%;
+  animation: ${shimmer} 1.5s infinite linear;
+`;
+
+export const SkeletonText = styled.div<{ $width?: string }>`
+  height: 15px;
+  width: ${props => props.$width || '70%'};
+  border-radius: 4px;
+  background: linear-gradient(90deg, #2E3035 25%, #35373C 50%, #2E3035 75%);
+  background-size: 200% 100%;
+  animation: ${shimmer} 1.5s infinite linear;
 `;

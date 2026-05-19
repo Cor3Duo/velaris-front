@@ -18,11 +18,12 @@ import {
   MessagePreviewBox, ModalTip, ModalFooter,
   ReplyBanner, RepliedMessageWrapper,
   ReactionBadge,
-  QuickReactionsBox
+  QuickReactionsBox,
+  SkeletonRow, SkeletonAvatar, SkeletonTextWrapper, SkeletonHeader, SkeletonText
 } from './styles';
 
 export function ChatArea() {
-  const { currentUser, globalServer, activeChannelId, messages, sendMessage, deleteMessage, editMessage, toggleReaction } = useChat();
+  const { currentUser, globalServer, activeChannelId, messages, sendMessage, deleteMessage, editMessage, toggleReaction, isMessagesLoading } = useChat();
   const [inputValue, setInputValue] = useState('');
 
   const [contextMenu, setContextMenu] = useState<{ x: number, y: number, message: Message } | null>(null);
@@ -34,11 +35,50 @@ export function ChatArea() {
   const quickEmojis = ['👍', '🤣', '❤️', '🔥', '😭', '👀'];
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesListRef = useRef<HTMLDivElement>(null);
+  const prevMessagesLength = useRef(messages.length);
+  const activeChannelIdRef = useRef(activeChannelId);
 
+  // Rola para o final de forma imediata após terminar o carregamento das mensagens do canal
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    if (!isMessagesLoading) {
+      const container = messagesListRef.current;
+      if (container) {
+        // Aguarda a renderização completa das mensagens para capturar o scrollHeight atualizado
+        setTimeout(() => {
+          container.scrollTop = container.scrollHeight;
+        }, 50);
+      }
+    }
+  }, [isMessagesLoading]);
+
+  // Rola para o final se receber nova mensagem e o usuário já estiver no final ou se for o próprio usuário enviando
+  useEffect(() => {
+    const container = messagesListRef.current;
+    if (!container) return;
+
+    const channelChanged = activeChannelIdRef.current !== activeChannelId;
+    activeChannelIdRef.current = activeChannelId;
+
+    if (channelChanged) {
+      prevMessagesLength.current = messages.length;
+      return;
+    }
+
+    if (messages.length > prevMessagesLength.current) {
+      const lastMessage = messages[messages.length - 1];
+      const sentByMe = lastMessage?.user.id === currentUser?.id;
+      const isAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight <= 200;
+
+      if (isAtBottom || sentByMe) {
+        container.scrollTo({
+          top: container.scrollHeight,
+          behavior: 'smooth'
+        });
+      }
+    }
+    prevMessagesLength.current = messages.length;
+  }, [messages, activeChannelId, currentUser?.id]);
 
   useEffect(() => {
     const handleClickOutside = () => setContextMenu(null);
@@ -118,86 +158,100 @@ export function ChatArea() {
         </HeaderIcons>
       </Header>
 
-      <MessagesList>
-        {messages.map((msg, index) => {
-          const prevMsg = index > 0 ? messages[index - 1] : null;
+      <MessagesList ref={messagesListRef}>
+        {isMessagesLoading ? (
+          Array.from({ length: 6 }).map((_, i) => {
+            const widths = ['65%', '40%', '80%', '50%', '70%', '55%'];
+            return (
+              <SkeletonRow key={i}>
+                <SkeletonAvatar />
+                <SkeletonTextWrapper>
+                  <SkeletonHeader />
+                  <SkeletonText $width={widths[i % widths.length]} />
+                </SkeletonTextWrapper>
+              </SkeletonRow>
+            );
+          })
+        ) : (
+          messages.map((msg, index) => {
+            const prevMsg = index > 0 ? messages[index - 1] : null;
 
-          const isSameUser = prevMsg?.user.id === msg.user.id;
+            const isSameUser = prevMsg?.user.id === msg.user.id;
 
-          const timeDiff = prevMsg ? new Date(msg.createdAt).getTime() - new Date(prevMsg.createdAt).getTime() : 0;
-          const isWithin5Min = timeDiff < 5 * 60 * 1000;
-          const isReply = !!msg.replyTo;
+            const timeDiff = prevMsg ? new Date(msg.createdAt).getTime() - new Date(prevMsg.createdAt).getTime() : 0;
+            const isWithin5Min = timeDiff < 5 * 60 * 1000;
+            const isReply = !!msg.replyTo;
 
-          const isGrouped = Boolean(isSameUser && isWithin5Min && !isReply);
+            const isGrouped = Boolean(isSameUser && isWithin5Min && !isReply);
 
-          return (
-            <MessageItem
-              key={msg.id}
-              $isGrouped={isGrouped}
-              onContextMenu={(e) => handleContextMenu(e, msg)}
-            >
-              <AvatarContainer $isGrouped={isGrouped}>
-                {isGrouped ? (
-                  <span className="grouped-time">
-                    {new Date(msg.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                  </span>
-                ) : (
-                  <Avatar style={{ backgroundColor: '#5865F2', marginTop: isReply ? '20px' : '0' }}>
-                    {msg.user.username.charAt(0).toUpperCase()}
-                  </Avatar>
-                )}
-              </AvatarContainer>
+            return (
+              <MessageItem
+                key={msg.id}
+                $isGrouped={isGrouped}
+                onContextMenu={(e) => handleContextMenu(e, msg)}
+              >
+                <AvatarContainer $isGrouped={isGrouped}>
+                  {isGrouped ? (
+                    <span className="grouped-time">
+                      {new Date(msg.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  ) : (
+                    <Avatar style={{ backgroundColor: '#5865F2', marginTop: isReply ? '20px' : '0' }}>
+                      {msg.user.username.charAt(0).toUpperCase()}
+                    </Avatar>
+                  )}
+                </AvatarContainer>
 
-              <MessageContent style={{ width: '100%' }}>
-                {isReply && (
-                  <RepliedMessageWrapper>
-                    <div className="tiny-avatar">{msg.replyTo!.user.username.charAt(0).toUpperCase()}</div>
-                    <strong>@{msg.replyTo!.user.username}</strong>
-                    <span className="reply-text">{msg.replyTo!.content}</span>
-                  </RepliedMessageWrapper>
-                )}
+                <MessageContent style={{ width: '100%' }}>
+                  {isReply && (
+                    <RepliedMessageWrapper>
+                      <div className="tiny-avatar">{msg.replyTo!.user.username.charAt(0).toUpperCase()}</div>
+                      <strong>@{msg.replyTo!.user.username}</strong>
+                      <span className="reply-text">{msg.replyTo!.content}</span>
+                    </RepliedMessageWrapper>
+                  )}
 
-                {!isGrouped && (
-                  <MessageHeader>
-                    <strong>{msg.user.username}</strong>
-                    <span>{new Date(msg.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
-                  </MessageHeader>
-                )}
+                  {!isGrouped && (
+                    <MessageHeader>
+                      <strong>{msg.user.username}</strong>
+                      <span>{new Date(msg.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+                    </MessageHeader>
+                  )}
 
-                {editingMessageId === msg.id ? (
-                  <EditMessageContainer>
-                    <EditInput autoFocus value={editingContent} onChange={(e) => setEditingContent(e.target.value)} onKeyDown={(e) => handleEditKeyDown(e, msg.id)} />
-                    <EditHelper>esc para <span onClick={cancelEditing}>cancelar</span> • enter para <span onClick={() => saveEditing(msg.id)}>salvar</span></EditHelper>
-                  </EditMessageContainer>
-                ) : (
-                  <Text>{msg.content}</Text>
-                )}
-                {/* Renderizar as Reações */}
-                {msg.reactions && msg.reactions.length > 0 && (
-                  <div style={{ display: 'flex', gap: '4px', marginTop: '4px', flexWrap: 'wrap' }}>
-                    {Object.entries(
-                      msg.reactions.reduce((acc, curr) => {
-                        if (!acc[curr.emoji]) acc[curr.emoji] = { count: 0, me: false };
-                        acc[curr.emoji].count++;
-                        if (curr.user.id === currentUser?.id) acc[curr.emoji].me = true;
-                        return acc;
-                      }, {} as Record<string, { count: number; me: boolean }>)
-                    ).map(([emoji, data]) => (
-                      <ReactionBadge
-                        key={emoji}
-                        $active={data.me}
-                        onClick={() => toggleReaction(msg.id, emoji)}
-                      >
-                        {emoji} <span>{data.count}</span>
-                      </ReactionBadge>
-                    ))}
-                  </div>
-                )}
-              </MessageContent>
-            </MessageItem>
-          );
-        })}
-        <div ref={messagesEndRef} />
+                  {editingMessageId === msg.id ? (
+                    <EditMessageContainer>
+                      <EditInput autoFocus value={editingContent} onChange={(e) => setEditingContent(e.target.value)} onKeyDown={(e) => handleEditKeyDown(e, msg.id)} />
+                      <EditHelper>esc para <span onClick={cancelEditing}>cancelar</span> • enter para <span onClick={() => saveEditing(msg.id)}>salvar</span></EditHelper>
+                    </EditMessageContainer>
+                  ) : (
+                    <Text>{msg.content}</Text>
+                  )}
+                  {/* Renderizar as Reações */}
+                  {msg.reactions && msg.reactions.length > 0 && (
+                    <div style={{ display: 'flex', gap: '4px', marginTop: '4px', flexWrap: 'wrap' }}>
+                      {Object.entries(
+                        msg.reactions.reduce((acc, curr) => {
+                          if (!acc[curr.emoji]) acc[curr.emoji] = { count: 0, me: false };
+                          acc[curr.emoji].count++;
+                          if (curr.user.id === currentUser?.id) acc[curr.emoji].me = true;
+                          return acc;
+                        }, {} as Record<string, { count: number; me: boolean }>)
+                      ).map(([emoji, data]) => (
+                        <ReactionBadge
+                          key={emoji}
+                          $active={data.me}
+                          onClick={() => toggleReaction(msg.id, emoji)}
+                        >
+                          {emoji} <span>{data.count}</span>
+                        </ReactionBadge>
+                      ))}
+                    </div>
+                  )}
+                </MessageContent>
+              </MessageItem>
+            );
+          })
+        )}
       </MessagesList>
 
       <InputWrapper>
