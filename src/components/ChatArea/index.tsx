@@ -1,10 +1,20 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import EmojiPicker, { Theme } from 'emoji-picker-react';
 import {
   Hash, Search, Inbox, HelpCircle, PlusCircle, Gift, Sticker, Smile,
   Reply, Edit2, Trash2, Copy, X,
   XCircle,
-  SmilePlus
+  SmilePlus,
+  Loader2,
+  File,
+  Eye,
+  Download,
+  ExternalLink,
+  FileAudio,
+  Play,
+  Pause,
+  Volume2,
+  VolumeX
 } from 'lucide-react';
 import { useChat, type Message } from '../../contexts/ChatContext';
 
@@ -19,11 +29,140 @@ import {
   ReplyBanner, RepliedMessageWrapper,
   ReactionBadge,
   QuickReactionsBox,
-  SkeletonRow, SkeletonAvatar, SkeletonTextWrapper, SkeletonHeader, SkeletonText
+  SkeletonRow, SkeletonAvatar, SkeletonTextWrapper, SkeletonHeader, SkeletonText,
+  LoadingMoreContainer,
+  AttachmentImage,
+  AttachmentCard,
+  UploadsContainer,
+  UploadPreviewCard,
+  LightboxOverlay,
+  LightboxContent,
+  LightboxCloseButton,
+  LightboxToolbar,
+  LightboxActionGroup,
+  AudioCard,
+  AudioHeader,
+  AudioControls,
+  UploadProgressCard
 } from './styles';
 
+interface AudioPlayerProps {
+  url: string;
+  name: string;
+  size: number;
+}
+
+function AudioPlayer({ url, name, size }: AudioPlayerProps) {
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [isMuted, setIsMuted] = useState(false);
+
+  const togglePlay = () => {
+    if (!audioRef.current) return;
+    if (isPlaying) {
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play();
+    }
+  };
+
+  const handleTimeUpdate = () => {
+    if (!audioRef.current) return;
+    setCurrentTime(audioRef.current.currentTime);
+  };
+
+  const handleLoadedMetadata = () => {
+    if (!audioRef.current) return;
+    setDuration(audioRef.current.duration);
+  };
+
+  const handleAudioEnded = () => {
+    setIsPlaying(false);
+    setCurrentTime(0);
+  };
+
+  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!audioRef.current) return;
+    const time = parseFloat(e.target.value);
+    audioRef.current.currentTime = time;
+    setCurrentTime(time);
+  };
+
+  const toggleMute = () => {
+    if (!audioRef.current) return;
+    audioRef.current.muted = !isMuted;
+    setIsMuted(!isMuted);
+  };
+
+  const formatTime = (time: number) => {
+    if (isNaN(time)) return '-:--';
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  return (
+    <AudioCard>
+      <audio
+        ref={audioRef}
+        src={url}
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
+        onTimeUpdate={handleTimeUpdate}
+        onLoadedMetadata={handleLoadedMetadata}
+        onEnded={handleAudioEnded}
+      />
+      <AudioHeader>
+        <div className="audio-icon-wrapper">
+          <FileAudio size={20} />
+        </div>
+        <div className="audio-info">
+          <a href={url} target="_blank" rel="noopener noreferrer" title={name}>
+            {name}
+          </a>
+          <span>{(size / (1024 * 1024)).toFixed(2)} MB</span>
+        </div>
+      </AudioHeader>
+      <AudioControls>
+        <button onClick={togglePlay}>
+          {isPlaying ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" />}
+        </button>
+        <div className="time-display">
+          {formatTime(currentTime)} / {formatTime(duration)}
+        </div>
+        <input
+          type="range"
+          className="progress-slider"
+          min={0}
+          max={duration || 100}
+          value={currentTime}
+          onChange={handleSeek}
+        />
+        <button onClick={toggleMute}>
+          {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+        </button>
+      </AudioControls>
+    </AudioCard>
+  );
+}
+
 export function ChatArea() {
-  const { currentUser, globalServer, activeChannelId, messages, sendMessage, deleteMessage, editMessage, toggleReaction, isMessagesLoading } = useChat();
+  const {
+    currentUser,
+    globalServer,
+    activeChannelId,
+    messages,
+    sendMessage,
+    deleteMessage,
+    editMessage,
+    toggleReaction,
+    isMessagesLoading,
+    hasMoreMessages,
+    isFetchingMore,
+    fetchMoreMessages
+  } = useChat();
   const [inputValue, setInputValue] = useState('');
 
   const [contextMenu, setContextMenu] = useState<{ x: number, y: number, message: Message } | null>(null);
@@ -35,9 +174,114 @@ export function ChatArea() {
   const quickEmojis = ['👍', '🤣', '❤️', '🔥', '😭', '👀'];
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
 
+  const [selectedFile, setSelectedFile] = useState<{ url: string; name: string; size: number } | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [uploadingFileName, setUploadingFileName] = useState<string>('');
+  const [uploadingFileSize, setUploadingFileSize] = useState<number>(0);
+  const uploadXhrRef = useRef<XMLHttpRequest | null>(null);
+  const [activeLightboxImage, setActiveLightboxImage] = useState<{ url: string; name: string } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleCancelUpload = () => {
+    if (uploadXhrRef.current) {
+      uploadXhrRef.current.abort();
+      uploadXhrRef.current = null;
+    }
+    setIsUploading(false);
+    setUploadProgress(0);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      alert('O arquivo excede o limite máximo de 10MB.');
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadProgress(0);
+    setUploadingFileName(file.name);
+    setUploadingFileSize(file.size);
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+    const xhr = new XMLHttpRequest();
+    uploadXhrRef.current = xhr;
+
+    xhr.upload.addEventListener('progress', (event) => {
+      if (event.lengthComputable) {
+        const percent = Math.round((event.loaded / event.total) * 100);
+        setUploadProgress(percent);
+      }
+    });
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          const data = JSON.parse(xhr.responseText);
+          setSelectedFile({
+            url: data.url,
+            name: data.name || file.name,
+            size: file.size
+          });
+        } catch (err) {
+          console.error(err);
+          alert('Erro ao processar resposta do envio.');
+        }
+      } else {
+        alert('Erro ao enviar o arquivo.');
+      }
+      setIsUploading(false);
+      uploadXhrRef.current = null;
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    };
+
+    xhr.onerror = () => {
+      alert('Erro de rede ao enviar o arquivo.');
+      setIsUploading(false);
+      uploadXhrRef.current = null;
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    };
+
+    xhr.open('POST', `${API_URL}/channels/upload`);
+    xhr.send(formData);
+  };
+
   const messagesListRef = useRef<HTMLDivElement>(null);
   const prevMessagesLength = useRef(messages.length);
   const activeChannelIdRef = useRef(activeChannelId);
+  const prevScrollHeightRef = useRef<number>(0);
+  const isPrependingRef = useRef<boolean>(false);
+
+  // Monitora o evento de scroll para carregar mais mensagens ao rolar para o topo
+  const handleScroll = () => {
+    const container = messagesListRef.current;
+    if (!container) return;
+
+    if (container.scrollTop <= 10 && hasMoreMessages && !isFetchingMore && messages.length > 0) {
+      prevScrollHeightRef.current = container.scrollHeight;
+      isPrependingRef.current = true;
+      fetchMoreMessages();
+    }
+  };
+
+  // Ajusta a rolagem para ancorar na posição visual anterior ao prepending
+  useLayoutEffect(() => {
+    const container = messagesListRef.current;
+    if (!container) return;
+
+    if (isPrependingRef.current) {
+      isPrependingRef.current = false;
+      const heightDifference = container.scrollHeight - prevScrollHeightRef.current;
+      container.scrollTop = heightDifference;
+    }
+  }, [messages]);
 
   // Rola para o final de forma imediata após terminar o carregamento das mensagens do canal
   useEffect(() => {
@@ -89,10 +333,12 @@ export function ChatArea() {
   const activeChannel = globalServer?.channels.find(c => c.id === activeChannelId);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && inputValue.trim() !== '') {
-      sendMessage(inputValue, replyingTo?.id);
+    if (e.key === 'Enter') {
+      if (!inputValue.trim() && !selectedFile) return;
+      sendMessage(inputValue, replyingTo?.id || undefined, selectedFile || undefined);
       setInputValue('');
       setReplyingTo(null);
+      setSelectedFile(null);
     }
   };
 
@@ -111,8 +357,17 @@ export function ChatArea() {
 
   const startEditing = () => {
     if (!contextMenu) return;
+
+    let rawContent = contextMenu.message.content;
+    try {
+      const parsed = JSON.parse(contextMenu.message.content);
+      if (parsed && parsed.text !== undefined) {
+        rawContent = parsed.text;
+      }
+    } catch (e) {}
+
     setEditingMessageId(contextMenu.message.id);
-    setEditingContent(contextMenu.message.content);
+    setEditingContent(rawContent);
     setContextMenu(null);
   };
 
@@ -122,7 +377,25 @@ export function ChatArea() {
   };
 
   const saveEditing = (msgId: string) => {
-    if (editingContent.trim() !== '') editMessage(msgId, editingContent);
+    const msg = messages.find(m => m.id === msgId);
+    if (msg) {
+      try {
+        const parsed = JSON.parse(msg.content);
+        if (parsed && (parsed.text !== undefined || parsed.fileUrl !== undefined)) {
+          const updatedContent = JSON.stringify({
+            ...parsed,
+            text: editingContent
+          });
+          editMessage(msgId, updatedContent);
+          cancelEditing();
+          return;
+        }
+      } catch (e) {}
+    }
+
+    if (editingContent.trim() !== '') {
+      editMessage(msgId, editingContent);
+    }
     cancelEditing();
   };
 
@@ -158,7 +431,7 @@ export function ChatArea() {
         </HeaderIcons>
       </Header>
 
-      <MessagesList ref={messagesListRef}>
+      <MessagesList ref={messagesListRef} onScroll={handleScroll}>
         {isMessagesLoading ? (
           Array.from({ length: 6 }).map((_, i) => {
             const widths = ['65%', '40%', '80%', '50%', '70%', '55%'];
@@ -173,59 +446,133 @@ export function ChatArea() {
             );
           })
         ) : (
-          messages.map((msg, index) => {
-            const prevMsg = index > 0 ? messages[index - 1] : null;
+          <>
+            {isFetchingMore && (
+              <LoadingMoreContainer>
+                <Loader2 size={18} />
+                Carregando histórico...
+              </LoadingMoreContainer>
+            )}
+            {messages.map((msg, index) => {
+              const prevMsg = index > 0 ? messages[index - 1] : null;
 
-            const isSameUser = prevMsg?.user.id === msg.user.id;
+              const isSameUser = prevMsg?.user.id === msg.user.id;
 
-            const timeDiff = prevMsg ? new Date(msg.createdAt).getTime() - new Date(prevMsg.createdAt).getTime() : 0;
-            const isWithin5Min = timeDiff < 5 * 60 * 1000;
-            const isReply = !!msg.replyTo;
+              const timeDiff = prevMsg ? new Date(msg.createdAt).getTime() - new Date(prevMsg.createdAt).getTime() : 0;
+              const isWithin5Min = timeDiff < 5 * 60 * 1000;
+              const isReply = !!msg.replyTo;
 
-            const isGrouped = Boolean(isSameUser && isWithin5Min && !isReply);
+              const isGrouped = Boolean(isSameUser && isWithin5Min && !isReply);
 
-            return (
-              <MessageItem
-                key={msg.id}
-                $isGrouped={isGrouped}
-                onContextMenu={(e) => handleContextMenu(e, msg)}
-              >
-                <AvatarContainer $isGrouped={isGrouped}>
-                  {isGrouped ? (
-                    <span className="grouped-time">
-                      {new Date(msg.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                    </span>
-                  ) : (
-                    <Avatar style={{ backgroundColor: '#5865F2', marginTop: isReply ? '20px' : '0' }}>
-                      {msg.user.username.charAt(0).toUpperCase()}
-                    </Avatar>
-                  )}
-                </AvatarContainer>
+              // Tenta parsear mensagem com anexo
+              let displayContent = msg.content;
+              let attachment: { url: string; name: string; size: number } | null = null;
 
-                <MessageContent style={{ width: '100%' }}>
-                  {isReply && (
-                    <RepliedMessageWrapper>
-                      <div className="tiny-avatar">{msg.replyTo!.user.username.charAt(0).toUpperCase()}</div>
-                      <strong>@{msg.replyTo!.user.username}</strong>
-                      <span className="reply-text">{msg.replyTo!.content}</span>
-                    </RepliedMessageWrapper>
-                  )}
+              try {
+                const parsed = JSON.parse(msg.content);
+                if (parsed && (parsed.text !== undefined || parsed.fileUrl !== undefined)) {
+                  displayContent = parsed.text || '';
+                  if (parsed.fileUrl) {
+                    attachment = {
+                      url: parsed.fileUrl,
+                      name: parsed.fileName,
+                      size: parsed.fileSize
+                    };
+                  }
+                }
+              } catch (e) {
+                // Conteúdo é texto normal
+              }
 
-                  {!isGrouped && (
-                    <MessageHeader>
-                      <strong>{msg.user.username}</strong>
-                      <span>{new Date(msg.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
-                    </MessageHeader>
-                  )}
+              return (
+                <MessageItem
+                  key={msg.id}
+                  $isGrouped={isGrouped}
+                  onContextMenu={(e) => handleContextMenu(e, msg)}
+                >
+                  <AvatarContainer $isGrouped={isGrouped}>
+                    {isGrouped ? (
+                      <span className="grouped-time">
+                        {new Date(msg.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    ) : (
+                      <Avatar style={{ backgroundColor: '#5865F2', marginTop: isReply ? '20px' : '0' }}>
+                        {msg.user.username.charAt(0).toUpperCase()}
+                      </Avatar>
+                    )}
+                  </AvatarContainer>
 
-                  {editingMessageId === msg.id ? (
-                    <EditMessageContainer>
-                      <EditInput autoFocus value={editingContent} onChange={(e) => setEditingContent(e.target.value)} onKeyDown={(e) => handleEditKeyDown(e, msg.id)} />
-                      <EditHelper>esc para <span onClick={cancelEditing}>cancelar</span> • enter para <span onClick={() => saveEditing(msg.id)}>salvar</span></EditHelper>
-                    </EditMessageContainer>
-                  ) : (
-                    <Text>{msg.content}</Text>
-                  )}
+                  <MessageContent style={{ width: '100%' }}>
+                    {isReply && (
+                      <RepliedMessageWrapper>
+                        <div className="tiny-avatar">{msg.replyTo!.user.username.charAt(0).toUpperCase()}</div>
+                        <strong>@{msg.replyTo!.user.username}</strong>
+                        <span className="reply-text">
+                          {(() => {
+                            try {
+                              const parsedReply = JSON.parse(msg.replyTo!.content);
+                              if (parsedReply && parsedReply.text !== undefined) {
+                                return parsedReply.text || (parsedReply.fileUrl ? '📁 Arquivo' : '');
+                              }
+                            } catch (e) {}
+                            return msg.replyTo!.content;
+                          })()}
+                        </span>
+                      </RepliedMessageWrapper>
+                    )}
+
+                    {!isGrouped && (
+                      <MessageHeader>
+                        <strong>{msg.user.username}</strong>
+                        <span>{new Date(msg.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+                      </MessageHeader>
+                    )}
+
+                    {editingMessageId === msg.id ? (
+                      <EditMessageContainer>
+                        <EditInput autoFocus value={editingContent} onChange={(e) => setEditingContent(e.target.value)} onKeyDown={(e) => handleEditKeyDown(e, msg.id)} />
+                        <EditHelper>esc para <span onClick={cancelEditing}>cancelar</span> • enter para <span onClick={() => saveEditing(msg.id)}>salvar</span></EditHelper>
+                      </EditMessageContainer>
+                    ) : (
+                      <>
+                        {displayContent && <Text>{displayContent}</Text>}
+
+                        {attachment && (
+                          (attachment.name && attachment.name.match(/\.(jpg|jpeg|png|gif|webp)$/i)) ? (
+                            <AttachmentImage
+                              src={attachment.url.startsWith('http') ? attachment.url : `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${attachment.url}`}
+                              alt={attachment.name || 'Imagem'}
+                              onClick={() => setActiveLightboxImage({
+                                url: attachment!.url.startsWith('http') ? attachment!.url : `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${attachment!.url}`,
+                                name: attachment!.name || 'Imagem'
+                              })}
+                            />
+                          ) : (attachment.name && attachment.name.match(/\.(mp3|wav|ogg|m4a|aac|flac)$/i)) ? (
+                            <AudioPlayer
+                              url={attachment.url.startsWith('http') ? attachment.url : `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${attachment.url}`}
+                              name={attachment.name || 'Áudio'}
+                              size={attachment.size}
+                            />
+                          ) : (
+                            <AttachmentCard>
+                              <div className="file-icon">
+                                <File size={24} />
+                              </div>
+                              <div className="file-details">
+                                <a
+                                  href={attachment.url.startsWith('http') ? attachment.url : `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${attachment.url}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  {attachment.name}
+                                </a>
+                                <span>{(attachment.size / (1024 * 1024)).toFixed(2)} MB</span>
+                              </div>
+                            </AttachmentCard>
+                          )
+                        )}
+                      </>
+                    )}
                   {/* Renderizar as Reações */}
                   {msg.reactions && msg.reactions.length > 0 && (
                     <div style={{ display: 'flex', gap: '4px', marginTop: '4px', flexWrap: 'wrap' }}>
@@ -250,11 +597,19 @@ export function ChatArea() {
                 </MessageContent>
               </MessageItem>
             );
-          })
+          })}
+          </>
         )}
       </MessagesList>
 
       <InputWrapper>
+        <input
+          type="file"
+          ref={fileInputRef}
+          style={{ display: 'none' }}
+          onChange={handleFileChange}
+        />
+
         {replyingTo && (
           <ReplyBanner>
             <div>Respondendo para <strong>@{replyingTo.user.username}</strong></div>
@@ -262,8 +617,82 @@ export function ChatArea() {
           </ReplyBanner>
         )}
 
-        <InputContainer style={{ borderTopLeftRadius: replyingTo ? '0' : '8px', borderTopRightRadius: replyingTo ? '0' : '8px' }}>
-          <button className="add-btn"><PlusCircle size={24} /></button>
+        {(isUploading || selectedFile) && (
+          <UploadsContainer>
+            {isUploading && (
+              <UploadProgressCard>
+                <div className="file-icon-wrapper">
+                  {uploadingFileName.match(/\.(mp3|wav|ogg|m4a|aac|flac)$/i) ? (
+                    <FileAudio size={18} />
+                  ) : (
+                    <File size={18} />
+                  )}
+                </div>
+                <div className="progress-details">
+                  <div className="info-row">
+                    <span className="filename" title={uploadingFileName}>
+                      {uploadingFileName}
+                    </span>
+                    <span className="separator"> — </span>
+                    <span className="filesize">
+                      {(uploadingFileSize / (1024 * 1024)).toFixed(2)} MB
+                    </span>
+                  </div>
+                  <div className="progress-bar-track">
+                    <div
+                      className="progress-bar-fill"
+                      style={{ width: `${uploadProgress}%` }}
+                    />
+                  </div>
+                </div>
+                <button
+                  className="cancel-button"
+                  title="Cancelar envio"
+                  onClick={handleCancelUpload}
+                >
+                  <X size={16} />
+                </button>
+              </UploadProgressCard>
+            )}
+
+            {!isUploading && selectedFile && (
+              <UploadPreviewCard>
+                <div className="card-body">
+                   {selectedFile.name && selectedFile.name.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                    <img
+                      src={selectedFile.url.startsWith('http') ? selectedFile.url : `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${selectedFile.url}`}
+                      alt={selectedFile.name}
+                    />
+                  ) : (
+                    <div className="file-icon-placeholder">
+                      <File size={24} />
+                    </div>
+                  )}
+                </div>
+                <div className="card-footer">
+                  <span className="filename" title={selectedFile.name}>{selectedFile.name}</span>
+                  <span className="filesize">{(selectedFile.size / (1024 * 1024)).toFixed(2)} MB</span>
+                </div>
+                <div className="card-actions">
+                  <button title="Ver original" onClick={() => window.open(selectedFile.url.startsWith('http') ? selectedFile.url : `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${selectedFile.url}`, '_blank')}>
+                    <Eye size={16} />
+                  </button>
+                  <button className="delete-btn" title="Remover anexo" onClick={() => setSelectedFile(null)}>
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              </UploadPreviewCard>
+            )}
+          </UploadsContainer>
+        )}
+
+        <InputContainer style={{
+          borderTopLeftRadius: (replyingTo || selectedFile || isUploading) ? '0' : '8px',
+          borderTopRightRadius: (replyingTo || selectedFile || isUploading) ? '0' : '8px'
+        }}>
+          <button className="add-btn" onClick={(e) => { e.preventDefault(); fileInputRef.current?.click(); }}>
+            <PlusCircle size={24} />
+          </button>
           <input
             id="chat-input"
             type="text"
@@ -362,6 +791,54 @@ export function ChatArea() {
             </ModalFooter>
           </ModalContainer>
         </ModalOverlay>
+      )}
+
+      {activeLightboxImage && (
+        <LightboxOverlay onClick={() => setActiveLightboxImage(null)}>
+          <LightboxToolbar onClick={(e) => e.stopPropagation()}>
+            <LightboxActionGroup>
+              <button
+                title="Salvar imagem"
+                onClick={async () => {
+                  try {
+                    const response = await fetch(activeLightboxImage.url);
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = activeLightboxImage.name || 'imagem';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    window.URL.revokeObjectURL(url);
+                  } catch (err) {
+                    window.open(activeLightboxImage.url, '_blank');
+                  }
+                }}
+              >
+                <Download size={18} />
+              </button>
+              <a
+                href={activeLightboxImage.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Abrir no navegador"
+              >
+                <ExternalLink size={18} />
+              </a>
+            </LightboxActionGroup>
+            <LightboxCloseButton
+              title="Fechar"
+              onClick={() => setActiveLightboxImage(null)}
+            >
+              <X size={18} />
+            </LightboxCloseButton>
+          </LightboxToolbar>
+
+          <LightboxContent onClick={(e) => e.stopPropagation()}>
+            <img src={activeLightboxImage.url} alt={activeLightboxImage.name} />
+          </LightboxContent>
+        </LightboxOverlay>
       )}
     </Container>
   );

@@ -647,3 +647,522 @@ export const SkeletonText = styled.div<{ $width?: string }>`
   background-size: 200% 100%;
   animation: ${shimmer} 1.5s infinite linear;
 `;
+
+export const LoadingMoreContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 0;
+  color: #949BA4;
+  font-size: 14px;
+
+  svg {
+    animation: spin 1s infinite linear;
+  }
+
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+`;
+
+export const AttachmentImage = styled.img`
+  max-width: 550px;
+  max-height: 350px;
+  width: auto;
+  height: auto;
+  border-radius: 8px;
+  margin-top: 8px;
+  cursor: pointer;
+  display: block;
+  align-self: flex-start;
+  transition: opacity 0.2s;
+
+  &:hover {
+    opacity: 0.9;
+  }
+`;
+
+export const AttachmentCard = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background-color: #2F3136;
+  border: 1px solid #202225;
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 8px;
+  max-width: 450px;
+  width: 100%;
+
+  .file-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 48px;
+    background-color: #36393F;
+    border-radius: 4px;
+    color: #B5BAC1;
+    flex-shrink: 0;
+  }
+
+  .file-details {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+
+    a {
+      color: #00AFF4;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+
+    span {
+      color: #72767D;
+      font-size: 12px;
+      margin-top: 4px;
+    }
+  }
+`;
+
+export const UploadsContainer = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  background-color: #2B2D31;
+  border-bottom: 1px solid #1F2023;
+  padding: 16px;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+`;
+
+export const UploadPreviewCard = styled.div`
+  position: relative;
+  width: 200px;
+  height: 200px;
+  background-color: #2B2D31;
+  border: 1px solid #1F2023;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 12px;
+  box-sizing: border-box;
+
+  .card-body {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #232428;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    overflow: hidden;
+    position: relative;
+    width: 100%;
+    
+    img {
+      width: 48px;
+      height: 48px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 1px solid #4E5058;
+    }
+
+    .file-icon-placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 48px;
+      height: 48px;
+      background-color: #35373C;
+      border-radius: 6px;
+      color: #B5BAC1;
+    }
+  }
+
+  .card-footer {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    text-align: left;
+
+    .filename {
+      color: #F2F3F5;
+      font-size: 13px;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .filesize {
+      color: #949BA4;
+      font-size: 11px;
+      margin-top: 2px;
+    }
+  }
+
+  .card-actions {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: flex;
+    background-color: #111214;
+    border-radius: 4px;
+    padding: 2px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    z-index: 10;
+    gap: 2px;
+
+    button {
+      background: none;
+      border: none;
+      color: #B5BAC1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px;
+      border-radius: 3px;
+      transition: background-color 0.2s, color 0.2s;
+
+      &:hover {
+        background-color: #35373C;
+        color: #F2F3F5;
+      }
+
+      &.delete-btn:hover {
+        color: #FA777C;
+      }
+    }
+  }
+`;
+
+export const LightboxOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.15s ease-out;
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+`;
+
+export const LightboxContent = styled.div`
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 85vw;
+  max-height: 85vh;
+
+  img {
+    max-width: 80vw;
+    max-height: 80vh;
+    object-fit: contain;
+    border-radius: 4px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    user-select: none;
+  }
+`;
+
+export const LightboxToolbar = styled.div`
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 10000;
+`;
+
+export const LightboxActionGroup = styled.div`
+  background-color: #111214;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  height: 36px;
+  box-sizing: border-box;
+
+  a, button {
+    background: none;
+    border: none;
+    color: #B5BAC1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    transition: background-color 0.2s, color 0.2s;
+    text-decoration: none;
+
+    &:hover {
+      background-color: #35373C;
+      color: #F2F3F5;
+    }
+  }
+`;
+
+export const LightboxCloseButton = styled.button`
+  background-color: #111214;
+  border: none;
+  color: #B5BAC1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: background-color 0.2s, color 0.2s;
+
+  &:hover {
+    background-color: #35373C;
+    color: #F2F3F5;
+  }
+`;
+
+export const AudioCard = styled.div`
+  background-color: #2b2d31;
+  border: 1px solid #202225;
+  border-radius: 8px;
+  padding: 12px;
+  width: 450px;
+  max-width: 100%;
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-sizing: border-box;
+`;
+
+export const AudioHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  .audio-icon-wrapper {
+    background-color: #313338;
+    color: #5865f2;
+    width: 38px;
+    height: 38px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .audio-info {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+
+    a {
+      color: #00a8fc;
+      font-size: 14px;
+      font-weight: 500;
+      text-decoration: none;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+
+    span {
+      color: #949ba4;
+      font-size: 12px;
+      margin-top: 2px;
+    }
+  }
+`;
+
+export const AudioControls = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background-color: #111214;
+  border-radius: 4px;
+  padding: 8px 12px;
+  height: 48px;
+  box-sizing: border-box;
+
+  button {
+    background: none;
+    border: none;
+    color: #dbdee1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: color 0.2s;
+    flex-shrink: 0;
+
+    &:hover {
+      color: #f2f3f5;
+    }
+  }
+
+  .time-display {
+    color: #949ba4;
+    font-size: 12px;
+    font-family: monospace;
+    min-width: 80px;
+    user-select: none;
+    flex-shrink: 0;
+  }
+
+  .progress-slider {
+    flex: 1;
+    height: 4px;
+    border-radius: 2px;
+    background: #4e5058;
+    outline: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+
+    &::-webkit-slider-runnable-track {
+      width: 100%;
+      height: 4px;
+      cursor: pointer;
+    }
+
+    &::-webkit-slider-thumb {
+      height: 12px;
+      width: 12px;
+      border-radius: 50%;
+      background: #5865f2;
+      cursor: pointer;
+      -webkit-appearance: none;
+      margin-top: -4px;
+    }
+  }
+`;
+
+export const UploadProgressCard = styled.div`
+  background-color: #2b2d31;
+  border: 1px solid #202225;
+  border-radius: 8px;
+  padding: 10px 14px;
+  width: 100%;
+  max-width: 500px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+  box-sizing: border-box;
+
+  .file-icon-wrapper {
+    background-color: #313338;
+    color: #5865f2;
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .progress-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    overflow: hidden;
+
+    .info-row {
+      display: flex;
+      align-items: center;
+      color: #f2f3f5;
+      font-size: 13px;
+      font-weight: 500;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+
+      .filename {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .separator {
+        margin: 0 4px;
+        color: #949ba4;
+      }
+
+      .filesize {
+        color: #949ba4;
+        font-weight: 400;
+      }
+    }
+
+    .progress-bar-track {
+      width: 100%;
+      height: 4px;
+      background-color: #4e5058;
+      border-radius: 2px;
+      overflow: hidden;
+      position: relative;
+
+      .progress-bar-fill {
+        height: 100%;
+        background-color: #5865f2;
+        transition: width 0.1s linear;
+      }
+    }
+  }
+
+  .cancel-button {
+    background: none;
+    border: none;
+    color: #949ba4;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border-radius: 50%;
+    transition: color 0.2s, background-color 0.2s;
+    flex-shrink: 0;
+
+    &:hover {
+      color: #f2f3f5;
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+  }
+`;

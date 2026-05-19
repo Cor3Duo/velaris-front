@@ -40,12 +40,15 @@ interface ChatContextData {
   isMessagesLoading: boolean;
   connectAsGuest: (username: string) => Promise<void>; // <-- Nova Função Adicionada
   messages: Message[];
-  sendMessage: (content: string, replyToId?: string) => void;
+  sendMessage: (content: string, replyToId?: string, attachment?: { url: string; name: string; size: number }) => void;
   deleteMessage: (messageId: string) => void;
   editMessage: (messageId: string, newContent: string) => void;
   toggleReaction: (messageId: string, emoji: string) => void;
   members: Member[];
   onlineUsers: Set<string>;
+  hasMoreMessages: boolean;
+  isFetchingMore: boolean;
+  fetchMoreMessages: () => Promise<void>;
 }
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
@@ -63,6 +66,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
+  const [hasMoreMessages, setHasMoreMessages] = useState(true);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
   const ws = useRef<WebSocket | null>(null);
 
   // Fecha o WebSocket se o usuário fechar a aba
@@ -70,15 +75,19 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     return () => { ws.current?.close(); };
   }, []);
 
-  // Busca mensagens sempre que mudar de canal
+  // Busca mensagens sempre que mudar de canal (trazendo as últimas 50)
   useEffect(() => {
     if (activeChannelId) {
       setIsMessagesLoading(true);
-      fetch(`${API_URL}/channels/${activeChannelId}/messages`)
+      setHasMoreMessages(true);
+      fetch(`${API_URL}/channels/${activeChannelId}/messages?limit=50`)
         .then(res => res.json())
         .then(data => {
           setMessages(data);
           setIsMessagesLoading(false);
+          if (data.length < 50) {
+            setHasMoreMessages(false);
+          }
         })
         .catch(err => {
           console.error('Erro ao buscar mensagens', err);
@@ -86,6 +95,34 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         });
     }
   }, [activeChannelId]);
+
+  const fetchMoreMessages = async () => {
+    if (!activeChannelId || isFetchingMore || !hasMoreMessages || messages.length === 0) return;
+
+    setIsFetchingMore(true);
+    const firstMessageId = messages[0].id;
+
+    try {
+      const res = await fetch(`${API_URL}/channels/${activeChannelId}/messages?before=${firstMessageId}&limit=50`);
+      const data = await res.json();
+
+      if (data.length < 50) {
+        setHasMoreMessages(false);
+      }
+
+      if (data.length > 0) {
+        setMessages(prev => {
+          const existingIds = new Set(prev.map(m => m.id));
+          const filteredNew = data.filter((m: Message) => !existingIds.has(m.id));
+          return [...filteredNew, ...prev];
+        });
+      }
+    } catch (err) {
+      console.error('Erro ao carregar mais mensagens', err);
+    } finally {
+      setIsFetchingMore(false);
+    }
+  };
 
   // Função chamada pelo Modal para criar o usuário e conectar
   const connectAsGuest = async (username: string) => {
@@ -184,12 +221,28 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
   const changeChannel = (channelId: string) => setActiveChannelId(channelId);
 
-  const sendMessage = (content: string, replyToId?: string) => {
-    if (!content.trim() || !ws.current || !currentUser || !activeChannelId) return;
+  const sendMessage = (
+    content: string,
+    replyToId?: string,
+    attachment?: { url: string; name: string; size: number }
+  ) => {
+    if ((!content.trim() && !attachment) || !ws.current || !currentUser || !activeChannelId) return;
+
+    let finalContent = content;
+
+    if (attachment) {
+      finalContent = JSON.stringify({
+        text: content,
+        fileUrl: attachment.url,
+        fileName: attachment.name,
+        fileSize: attachment.size
+      });
+    }
+
     if (ws.current.readyState === WebSocket.OPEN) {
       ws.current.send(JSON.stringify({
         event: 'sendMessage',
-        data: { channelId: activeChannelId, userId: currentUser.id, content, replyToId }
+        data: { channelId: activeChannelId, userId: currentUser.id, content: finalContent, replyToId }
       }));
     }
   };
@@ -234,7 +287,10 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         editMessage,
         toggleReaction,
         members,
-        onlineUsers
+        onlineUsers,
+        hasMoreMessages,
+        isFetchingMore,
+        fetchMoreMessages
       }}
     >
       {children}
