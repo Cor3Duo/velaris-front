@@ -171,101 +171,101 @@ interface GifCategory {
 const GIF_CATEGORIES: GifCategory[] = [
   {
     name: 'Favoritos',
-    bgUrl: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/VdB3sz5hM8vyUR1tS9/giphy.gif',
+    bgUrl: 'https://i.giphy.com/media/VdB3sz5hM8vyUR1tS9/giphy.gif',
     gifs: [
-      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/VdB3sz5hM8vyUR1tS9/giphy.gif',
-      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/3ogwFGExp9c9vRZv32/giphy.gif',
-      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/26n6Gx9moCgs1pUuk/giphy.gif',
-      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/l3V0lsG3Js1O9nGLK/giphy.gif'
+      'https://i.giphy.com/media/VdB3sz5hM8vyUR1tS9/giphy.gif',
+      'https://i.giphy.com/media/3ogwFGExp9c9vRZv32/giphy.gif',
+      'https://i.giphy.com/media/26n6Gx9moCgs1pUuk/giphy.gif',
+      'https://i.giphy.com/media/l3V0lsG3Js1O9nGLK/giphy.gif'
     ]
   },
   {
     name: 'GIFs em alta',
-    bgUrl: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/tJqyalvo9ahykfykAj/giphy.gif',
+    bgUrl: 'https://i.giphy.com/media/tJqyalvo9ahykfykAj/giphy.gif',
     gifs: [
-      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/tJqyalvo9ahykfykAj/giphy.gif',
-      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/mpxnrjQKLo0iA32r2C/giphy.gif',
-      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/mP8mWVA5QD4cE/giphy.gif',
-      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/tJZd6mye81Ko0/giphy.gif'
+      'https://i.giphy.com/media/tJqyalvo9ahykfykAj/giphy.gif',
+      'https://i.giphy.com/media/mpxnrjQKLo0iA32r2C/giphy.gif',
+      'https://i.giphy.com/media/mP8mWVA5QD4cE/giphy.gif',
+      'https://i.giphy.com/media/tJZd6mye81Ko0/giphy.gif'
     ]
   },
   {
     name: 'hello',
-    bgUrl: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/VdB3sz5hM8vyUR1tS9/giphy.gif',
+    bgUrl: 'https://i.giphy.com/media/VdB3sz5hM8vyUR1tS9/giphy.gif',
     gifs: [
-      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/VdB3sz5hM8vyUR1tS9/giphy.gif',
-      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/3ogwFGExp9c9vRZv32/giphy.gif',
-      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/10JhviFuU2gWD6/giphy.gif',
-      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/cwbvBVSeymdQA/giphy.gif'
+      'https://i.giphy.com/media/VdB3sz5hM8vyUR1tS9/giphy.gif',
+      'https://i.giphy.com/media/3ogwFGExp9c9vRZv32/giphy.gif',
+      'https://i.giphy.com/media/10JhviFuU2gWD6/giphy.gif',
+      'https://i.giphy.com/media/cwbvBVSeymdQA/giphy.gif'
     ]
   },
   {
     name: 'lol',
-    bgUrl: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/10JhviFuU2gWD6/giphy.gif',
+    bgUrl: 'https://i.giphy.com/media/10JhviFuU2gWD6/giphy.gif',
     gifs: [
-      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/10JhviFuU2gWD6/giphy.gif',
-      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/26n6Gx9moCgs1pUuk/giphy.gif',
-      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/9MFsHEIJELD6E/giphy.gif',
-      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/143v0Z4767T15e/giphy.gif'
+      'https://i.giphy.com/media/10JhviFuU2gWD6/giphy.gif',
+      'https://i.giphy.com/media/26n6Gx9moCgs1pUuk/giphy.gif',
+      'https://i.giphy.com/media/9MFsHEIJELD6E/giphy.gif',
+      'https://i.giphy.com/media/143v0Z4767T15e/giphy.gif'
     ]
   },
   {
     name: 'love',
-    bgUrl: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/l4FGlmpk9KUAyvS9O/giphy.gif',
+    bgUrl: 'https://i.giphy.com/media/l4FGlmpk9KUAyvS9O/giphy.gif',
     gifs: [
-      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/l4FGlmpk9KUAyvS9O/giphy.gif',
-      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/26FLdmIp6wJr91JAI/giphy.gif',
-      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/5Govl2ixfTAOY/giphy.gif',
-      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/Z1P59V3S1q1Mc/giphy.gif'
+      'https://i.giphy.com/media/l4FGlmpk9KUAyvS9O/giphy.gif',
+      'https://i.giphy.com/media/26FLdmIp6wJr91JAI/giphy.gif',
+      'https://i.giphy.com/media/5Govl2ixfTAOY/giphy.gif',
+      'https://i.giphy.com/media/Z1P59V3S1q1Mc/giphy.gif'
     ]
   },
   {
     name: 'happy birthday',
-    bgUrl: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/kxG16FHstZvCo/giphy.gif',
+    bgUrl: 'https://i.giphy.com/media/kxG16FHstZvCo/giphy.gif',
     gifs: [
-      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/kxG16FHstZvCo/giphy.gif',
-      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/mcDUa4aHw8hNu/giphy.gif',
-      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/8FBCOCIf5UkCs/giphy.gif',
-      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/ljuS6rVYJDJeM/giphy.gif'
+      'https://i.giphy.com/media/kxG16FHstZvCo/giphy.gif',
+      'https://i.giphy.com/media/mcDUa4aHw8hNu/giphy.gif',
+      'https://i.giphy.com/media/8FBCOCIf5UkCs/giphy.gif',
+      'https://i.giphy.com/media/ljuS6rVYJDJeM/giphy.gif'
     ]
   },
   {
     name: 'applause',
-    bgUrl: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/fnK0ja2ezSwC4/giphy.gif',
+    bgUrl: 'https://i.giphy.com/media/fnK0ja2ezSwC4/giphy.gif',
     gifs: [
-      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/fnK0ja2ezSwC4/giphy.gif',
-      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/5Govl2ixfTAOY/giphy.gif',
-      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/3oriO5iE1CcrxcBNI4/giphy.gif'
+      'https://i.giphy.com/media/fnK0ja2ezSwC4/giphy.gif',
+      'https://i.giphy.com/media/5Govl2ixfTAOY/giphy.gif',
+      'https://i.giphy.com/media/3oriO5iE1CcrxcBNI4/giphy.gif'
     ]
   },
   {
     name: 'dance',
-    bgUrl: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/l3V0lsG3Js1O9nGLK/giphy.gif',
+    bgUrl: 'https://i.giphy.com/media/l3V0lsG3Js1O9nGLK/giphy.gif',
     gifs: [
-      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/l3V0lsG3Js1O9nGLK/giphy.gif',
-      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/143v0Z4767T15e/giphy.gif',
-      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/105OwsN7a4uqJ2/giphy.gif',
-      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/xJjs8eGVbjNYY/giphy.gif'
+      'https://i.giphy.com/media/l3V0lsG3Js1O9nGLK/giphy.gif',
+      'https://i.giphy.com/media/143v0Z4767T15e/giphy.gif',
+      'https://i.giphy.com/media/105OwsN7a4uqJ2/giphy.gif',
+      'https://i.giphy.com/media/xJjs8eGVbjNYY/giphy.gif'
     ]
   },
   {
     name: 'scared',
-    bgUrl: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/3o7TKChh54g6XzpHQQ/giphy.gif',
+    bgUrl: 'https://i.giphy.com/media/3o7TKChh54g6XzpHQQ/giphy.gif',
     gifs: [
-      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/3o7TKChh54g6XzpHQQ/giphy.gif',
-      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/14ut8LMmgSi0ug/giphy.gif',
-      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/l0MYryZTmQgvHI5qg/giphy.gif',
-      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/3o7TKSx0g7sxR9Mhyo/giphy.gif'
+      'https://i.giphy.com/media/3o7TKChh54g6XzpHQQ/giphy.gif',
+      'https://i.giphy.com/media/14ut8LMmgSi0ug/giphy.gif',
+      'https://i.giphy.com/media/l0MYryZTmQgvHI5qg/giphy.gif',
+      'https://i.giphy.com/media/3o7TKSx0g7sxR9Mhyo/giphy.gif'
     ]
   },
   {
     name: 'crying',
-    bgUrl: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/2WxWlkKW1cLPq/giphy.gif',
+    bgUrl: 'https://i.giphy.com/media/2WxWlkKW1cLPq/giphy.gif',
     gifs: [
-      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/2WxWlkKW1cLPq/giphy.gif',
-      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/12rQ7WkbXdP85y/giphy.gif',
-      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/KDRv3QggAj6Za/giphy.gif',
-      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/9Y5BbDSkSTiY8/giphy.gif'
+      'https://i.giphy.com/media/2WxWlkKW1cLPq/giphy.gif',
+      'https://i.giphy.com/media/12rQ7WkbXdP85y/giphy.gif',
+      'https://i.giphy.com/media/KDRv3QggAj6Za/giphy.gif',
+      'https://i.giphy.com/media/9Y5BbDSkSTiY8/giphy.gif'
     ]
   }
 ];
@@ -339,7 +339,7 @@ export function ChatArea() {
           const res = await fetch(endpoint);
           if (res.ok) {
             const data = await res.json();
-            const urls = data.data.map((item: any) => item.images.fixed_height.url);
+            const urls = data.data.map((item: any) => `https://i.giphy.com/media/${item.id}/giphy.gif`);
             setGifResults(urls);
           } else {
             fallbackLocalSearch();
@@ -1008,9 +1008,6 @@ export function ChatArea() {
                 </GifCategoryGrid>
               )}
             </GifPickerContent>
-            <GifPickerFooter>
-              via GIPHY
-            </GifPickerFooter>
           </GifPickerContainer>
         )}
 
