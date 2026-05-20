@@ -14,7 +14,8 @@ import {
   Play,
   Pause,
   Volume2,
-  VolumeX
+  VolumeX,
+  ArrowLeft
 } from 'lucide-react';
 import { useChat, type Message } from '../../contexts/ChatContext';
 
@@ -43,7 +44,20 @@ import {
   AudioCard,
   AudioHeader,
   AudioControls,
-  UploadProgressCard
+  UploadProgressCard,
+  GifButton,
+  GifPickerContainer,
+  GifPickerHeader,
+  GifPickerTab,
+  GifPickerSearchWrapper,
+  GifPickerSearchInput,
+  GifPickerContent,
+  GifCategoryGrid,
+  GifCategoryCard,
+  GifResultGrid,
+  GifItemImage,
+  GifPickerLoading,
+  GifPickerFooter
 } from './styles';
 
 interface AudioPlayerProps {
@@ -148,6 +162,114 @@ function AudioPlayer({ url, name, size }: AudioPlayerProps) {
   );
 }
 
+interface GifCategory {
+  name: string;
+  bgUrl: string;
+  gifs: string[];
+}
+
+const GIF_CATEGORIES: GifCategory[] = [
+  {
+    name: 'Favoritos',
+    bgUrl: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/VdB3sz5hM8vyUR1tS9/giphy.gif',
+    gifs: [
+      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/VdB3sz5hM8vyUR1tS9/giphy.gif',
+      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/3ogwFGExp9c9vRZv32/giphy.gif',
+      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/26n6Gx9moCgs1pUuk/giphy.gif',
+      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/l3V0lsG3Js1O9nGLK/giphy.gif'
+    ]
+  },
+  {
+    name: 'GIFs em alta',
+    bgUrl: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/tJqyalvo9ahykfykAj/giphy.gif',
+    gifs: [
+      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/tJqyalvo9ahykfykAj/giphy.gif',
+      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/mpxnrjQKLo0iA32r2C/giphy.gif',
+      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/mP8mWVA5QD4cE/giphy.gif',
+      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/tJZd6mye81Ko0/giphy.gif'
+    ]
+  },
+  {
+    name: 'hello',
+    bgUrl: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/VdB3sz5hM8vyUR1tS9/giphy.gif',
+    gifs: [
+      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/VdB3sz5hM8vyUR1tS9/giphy.gif',
+      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/3ogwFGExp9c9vRZv32/giphy.gif',
+      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/10JhviFuU2gWD6/giphy.gif',
+      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/cwbvBVSeymdQA/giphy.gif'
+    ]
+  },
+  {
+    name: 'lol',
+    bgUrl: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/10JhviFuU2gWD6/giphy.gif',
+    gifs: [
+      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/10JhviFuU2gWD6/giphy.gif',
+      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/26n6Gx9moCgs1pUuk/giphy.gif',
+      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/9MFsHEIJELD6E/giphy.gif',
+      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/143v0Z4767T15e/giphy.gif'
+    ]
+  },
+  {
+    name: 'love',
+    bgUrl: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/l4FGlmpk9KUAyvS9O/giphy.gif',
+    gifs: [
+      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/l4FGlmpk9KUAyvS9O/giphy.gif',
+      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/26FLdmIp6wJr91JAI/giphy.gif',
+      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/5Govl2ixfTAOY/giphy.gif',
+      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/Z1P59V3S1q1Mc/giphy.gif'
+    ]
+  },
+  {
+    name: 'happy birthday',
+    bgUrl: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/kxG16FHstZvCo/giphy.gif',
+    gifs: [
+      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/kxG16FHstZvCo/giphy.gif',
+      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/mcDUa4aHw8hNu/giphy.gif',
+      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/8FBCOCIf5UkCs/giphy.gif',
+      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/ljuS6rVYJDJeM/giphy.gif'
+    ]
+  },
+  {
+    name: 'applause',
+    bgUrl: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/fnK0ja2ezSwC4/giphy.gif',
+    gifs: [
+      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/fnK0ja2ezSwC4/giphy.gif',
+      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/5Govl2ixfTAOY/giphy.gif',
+      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/3oriO5iE1CcrxcBNI4/giphy.gif'
+    ]
+  },
+  {
+    name: 'dance',
+    bgUrl: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/l3V0lsG3Js1O9nGLK/giphy.gif',
+    gifs: [
+      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/l3V0lsG3Js1O9nGLK/giphy.gif',
+      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/143v0Z4767T15e/giphy.gif',
+      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/105OwsN7a4uqJ2/giphy.gif',
+      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/xJjs8eGVbjNYY/giphy.gif'
+    ]
+  },
+  {
+    name: 'scared',
+    bgUrl: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/3o7TKChh54g6XzpHQQ/giphy.gif',
+    gifs: [
+      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/3o7TKChh54g6XzpHQQ/giphy.gif',
+      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/14ut8LMmgSi0ug/giphy.gif',
+      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/l0MYryZTmQgvHI5qg/giphy.gif',
+      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/3o7TKSx0g7sxR9Mhyo/giphy.gif'
+    ]
+  },
+  {
+    name: 'crying',
+    bgUrl: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/2WxWlkKW1cLPq/giphy.gif',
+    gifs: [
+      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/2WxWlkKW1cLPq/giphy.gif',
+      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/12rQ7WkbXdP85y/giphy.gif',
+      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/KDRv3QggAj6Za/giphy.gif',
+      'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHYwdWl6OWRmcDFnN3E1c29kZndzOGo4cWZidG1mYzVqMGxmejdsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/9Y5BbDSkSTiY8/giphy.gif'
+    ]
+  }
+];
+
 export function ChatArea() {
   const {
     currentUser,
@@ -181,6 +303,101 @@ export function ChatArea() {
   const [uploadingFileSize, setUploadingFileSize] = useState<number>(0);
   const uploadXhrRef = useRef<XMLHttpRequest | null>(null);
   const [activeLightboxImage, setActiveLightboxImage] = useState<{ url: string; name: string } | null>(null);
+  const [showGifPicker, setShowGifPicker] = useState(false);
+  const [gifSearchQuery, setGifSearchQuery] = useState('');
+  const [gifResults, setGifResults] = useState<string[]>([]);
+  const [isGifsLoading, setIsGifsLoading] = useState(false);
+  const [gifActiveTab, setGifActiveTab] = useState<'gifs' | 'figurinha' | 'emoji'>('gifs');
+  const gifPickerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (gifPickerRef.current && !gifPickerRef.current.contains(e.target as Node)) {
+        setShowGifPicker(false);
+      }
+    };
+    if (showGifPicker) {
+      document.addEventListener('mousedown', handleOutsideClick);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+    };
+  }, [showGifPicker]);
+
+  useEffect(() => {
+    if (!gifSearchQuery) {
+      setGifResults([]);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setIsGifsLoading(true);
+      const giphyApiKey = import.meta.env.VITE_GIPHY_API_KEY;
+      if (giphyApiKey) {
+        try {
+          const endpoint = `https://api.giphy.com/v1/gifs/search?api_key=${giphyApiKey}&q=${encodeURIComponent(gifSearchQuery)}&limit=30&rating=g`;
+          const res = await fetch(endpoint);
+          if (res.ok) {
+            const data = await res.json();
+            const urls = data.data.map((item: any) => item.images.fixed_height.url);
+            setGifResults(urls);
+          } else {
+            fallbackLocalSearch();
+          }
+        } catch (err) {
+          console.error(err);
+          fallbackLocalSearch();
+        } finally {
+          setIsGifsLoading(false);
+        }
+      } else {
+        fallbackLocalSearch();
+        setIsGifsLoading(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+
+    function fallbackLocalSearch() {
+      const query = gifSearchQuery.toLowerCase().trim();
+      const matchedCategory = GIF_CATEGORIES.find(cat => 
+        cat.name.toLowerCase() === query || 
+        query.includes(cat.name.toLowerCase()) || 
+        cat.name.toLowerCase().includes(query)
+      );
+      if (matchedCategory) {
+        setGifResults(matchedCategory.gifs);
+      } else {
+        const matches: string[] = [];
+        GIF_CATEGORIES.forEach(cat => {
+          if (cat.name.toLowerCase().includes(query) || query.includes(cat.name.toLowerCase())) {
+            matches.push(...cat.gifs);
+          }
+        });
+        if (matches.length > 0) {
+          setGifResults(Array.from(new Set(matches)));
+        } else {
+          const allGifs = Array.from(new Set(GIF_CATEGORIES.flatMap(cat => cat.gifs)));
+          setGifResults(allGifs);
+        }
+      }
+    }
+  }, [gifSearchQuery]);
+
+  const handleSendGif = (gifUrl: string) => {
+    sendMessage(gifUrl);
+    setShowGifPicker(false);
+    setGifSearchQuery('');
+  };
+
+  const isImageUrl = (text: string) => {
+    if (!text) return false;
+    const trimmed = text.trim();
+    if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://')) return false;
+    if (trimmed.includes(' ')) return false;
+    return !!(trimmed.match(/\.(jpg|jpeg|png|gif|webp)($|\?)/i) || trimmed.includes('giphy.com/media/'));
+  };
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleCancelUpload = () => {
@@ -535,7 +752,25 @@ export function ChatArea() {
                       </EditMessageContainer>
                     ) : (
                       <>
-                        {displayContent && <Text>{displayContent}</Text>}
+                        {displayContent && (
+                          isImageUrl(displayContent) ? (
+                            <>
+                              <Text>
+                                <a href={displayContent} target="_blank" rel="noopener noreferrer" style={{ color: '#00a8fc', textDecoration: 'none' }}>
+                                  {displayContent}
+                                </a>
+                              </Text>
+                              <AttachmentImage
+                                src={displayContent}
+                                alt="GIF/Imagem"
+                                onClick={() => setActiveLightboxImage({ url: displayContent, name: 'GIF/Imagem' })}
+                                style={{ marginTop: '8px', cursor: 'zoom-in' }}
+                              />
+                            </>
+                          ) : (
+                            <Text>{displayContent}</Text>
+                          )
+                        )}
 
                         {attachment && (
                           (attachment.name && attachment.name.match(/\.(jpg|jpeg|png|gif|webp)$/i)) ? (
@@ -686,6 +921,99 @@ export function ChatArea() {
           </UploadsContainer>
         )}
 
+        {showGifPicker && (
+          <GifPickerContainer ref={gifPickerRef}>
+            <GifPickerHeader>
+              <GifPickerTab
+                $active={gifActiveTab === 'gifs'}
+                onClick={() => setGifActiveTab('gifs')}
+              >
+                GIFs
+              </GifPickerTab>
+              <GifPickerTab
+                $active={gifActiveTab === 'figurinha'}
+                onClick={() => setGifActiveTab('figurinha')}
+              >
+                Figurinhas
+              </GifPickerTab>
+              <GifPickerTab
+                $active={gifActiveTab === 'emoji'}
+                onClick={() => setGifActiveTab('emoji')}
+              >
+                Emojis
+              </GifPickerTab>
+            </GifPickerHeader>
+
+            <GifPickerSearchWrapper>
+              {gifSearchQuery && (
+                <button
+                  className="back-button"
+                  onClick={() => setGifSearchQuery('')}
+                  title="Voltar"
+                >
+                  <ArrowLeft size={16} />
+                </button>
+              )}
+              <div style={{ position: 'relative', flex: 1 }}>
+                <Search size={16} className="search-icon" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#949ba4' }} />
+                <GifPickerSearchInput
+                  type="text"
+                  placeholder={gifActiveTab === 'gifs' ? 'Buscar Gifs' : gifActiveTab === 'figurinha' ? 'Buscar Figurinhas' : 'Buscar Emojis'}
+                  value={gifSearchQuery}
+                  onChange={(e) => setGifSearchQuery(e.target.value)}
+                />
+              </div>
+            </GifPickerSearchWrapper>
+
+            <GifPickerContent>
+              {gifActiveTab !== 'gifs' ? (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#949ba4', textAlign: 'center', padding: '0 20px', gap: '12px' }}>
+                  <Smile size={48} color="#4e5058" />
+                  <div style={{ fontSize: '13px' }}>
+                    {gifActiveTab === 'figurinha' ? 'Nenhuma figurinha disponível no momento.' : 'Use o ícone de Smile à direita para abrir o seletor completo de emojis!'}
+                  </div>
+                </div>
+              ) : isGifsLoading ? (
+                <GifPickerLoading>
+                  <Loader2 className="animate-spin" size={24} style={{ animation: 'spin 1s infinite linear' }} />
+                </GifPickerLoading>
+              ) : gifSearchQuery ? (
+                gifResults.length > 0 ? (
+                  <GifResultGrid>
+                    {gifResults.map((url, index) => (
+                      <GifItemImage
+                        key={index}
+                        src={url}
+                        alt="GIF Result"
+                        onClick={() => handleSendGif(url)}
+                      />
+                    ))}
+                  </GifResultGrid>
+                ) : (
+                  <div style={{ textAlign: 'center', color: '#949ba4', padding: '24px 0' }}>
+                    Nenhum GIF encontrado
+                  </div>
+                )
+              ) : (
+                <GifCategoryGrid>
+                  {GIF_CATEGORIES.map((category) => (
+                    <GifCategoryCard
+                      key={category.name}
+                      $bgUrl={category.bgUrl}
+                      onClick={() => setGifSearchQuery(category.name)}
+                    >
+                      <span>{category.name}</span>
+                    </GifCategoryCard>
+                  ))}
+                </GifCategoryGrid>
+              )}
+            </GifPickerContent>
+            <GifPickerFooter>
+              via GIPHY
+            </GifPickerFooter>
+          </GifPickerContainer>
+        )}
+
         <InputContainer style={{
           borderTopLeftRadius: (replyingTo || selectedFile || isUploading) ? '0' : '8px',
           borderTopRightRadius: (replyingTo || selectedFile || isUploading) ? '0' : '8px'
@@ -702,7 +1030,16 @@ export function ChatArea() {
             onKeyDown={handleKeyDown}
           />
           <RightIcons>
-            <button><Gift size={24} /></button><button><Sticker size={24} /></button><button><Smile size={24} /></button>
+            <button><Gift size={24} /></button>
+            <GifButton
+              type="button"
+              className={showGifPicker ? 'active' : ''}
+              onClick={(e) => { e.preventDefault(); setShowGifPicker(!showGifPicker); }}
+            >
+              <div className="gif-label">GIF</div>
+            </GifButton>
+            <button><Sticker size={24} /></button>
+            <button><Smile size={24} /></button>
           </RightIcons>
         </InputContainer>
       </InputWrapper>

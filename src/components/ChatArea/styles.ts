@@ -185,6 +185,7 @@ export const Text = styled.div`
 /* 3. CAIXA DE INPUT */
 export const InputWrapper = styled.div`
   padding: 0 16px 24px 16px;
+  position: relative;
 `;
 
 export const InputContainer = styled.div`
@@ -1166,3 +1167,239 @@ export const UploadProgressCard = styled.div`
     }
   }
 `;
+
+export const GifButton = styled.button`
+  background: none;
+  border: none;
+  color: #b5bac1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: color 0.2s;
+  flex-shrink: 0;
+
+  .gif-label {
+    border: 2px solid #b5bac1;
+    border-radius: 4px;
+    font-size: 9px;
+    font-weight: 800;
+    line-height: 1;
+    padding: 2px 3px;
+    letter-spacing: 0.5px;
+    transition: border-color 0.2s;
+    user-select: none;
+  }
+
+  &:hover {
+    color: #f2f3f5;
+    .gif-label {
+      border-color: #f2f3f5;
+    }
+  }
+
+  &.active {
+    color: #5865f2;
+    .gif-label {
+      border-color: #5865f2;
+    }
+  }
+`;
+
+export const GifPickerContainer = styled.div`
+  position: absolute;
+  bottom: 60px;
+  right: 16px;
+  width: 380px;
+  height: 480px;
+  background-color: #313338;
+  border-radius: 8px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+  border: 1px solid #1e1f22;
+  overflow: hidden;
+`;
+
+export const GifPickerHeader = styled.div`
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  background-color: #2b2d31;
+  border-bottom: 1px solid #1e1f22;
+  gap: 12px;
+`;
+
+export const GifPickerTab = styled.div<{ $active?: boolean }>`
+  font-size: 14px;
+  font-weight: 600;
+  color: ${props => props.$active ? '#f2f3f5' : '#949ba4'};
+  background-color: ${props => props.$active ? '#3f4147' : 'transparent'};
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s, color 0.2s;
+
+  &:hover {
+    background-color: ${props => props.$active ? '#3f4147' : 'rgba(255,255,255,0.05)'};
+    color: #f2f3f5;
+  }
+`;
+
+export const GifPickerSearchWrapper = styled.div`
+  padding: 12px 16px 8px 16px;
+  position: relative;
+  background-color: #313338;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .back-button {
+    background: none;
+    border: none;
+    color: #949ba4;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+    border-radius: 4px;
+    transition: color 0.2s, background-color 0.2s;
+
+    &:hover {
+      color: #f2f3f5;
+      background-color: #3f4147;
+    }
+  }
+`;
+
+export const GifPickerSearchInput = styled.input`
+  width: 100%;
+  padding: 8px 12px 8px 36px;
+  background-color: #1e1f22;
+  border: none;
+  border-radius: 4px;
+  color: #dbdee1;
+  font-size: 14px;
+  outline: none;
+
+  &::placeholder {
+    color: #949ba4;
+  }
+`;
+
+export const GifPickerContent = styled.div`
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 16px 16px 16px;
+  background-color: #313338;
+
+  /* Custom scrollbar */
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  &::-webkit-scrollbar-track {
+    background: #2b2d31;
+    border-radius: 4px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #1e1f22;
+    border-radius: 4px;
+  }
+`;
+
+export const GifCategoryGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+`;
+
+export const GifCategoryCard = styled.div<{ $bgUrl?: string }>`
+  height: 90px;
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  background-image: ${props => props.$bgUrl ? `url(${props.$bgUrl})` : 'none'};
+  background-size: cover;
+  background-position: center;
+  background-color: #2b2d31;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.45);
+    transition: background 0.2s ease;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    &::before {
+      background: rgba(0, 0, 0, 0.25);
+    }
+  }
+
+  span {
+    position: relative;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: capitalize;
+    letter-spacing: 0.5px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
+    z-index: 1;
+  }
+`;
+
+export const GifResultGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+`;
+
+export const GifItemImage = styled.img`
+  width: 100%;
+  height: 110px;
+  object-fit: cover;
+  border-radius: 4px;
+  cursor: pointer;
+  background-color: #2b2d31;
+  transition: transform 0.2s ease, filter 0.2s ease;
+
+  &:hover {
+    transform: scale(1.03);
+    filter: brightness(1.1);
+  }
+`;
+
+export const GifPickerLoading = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: #949ba4;
+`;
+
+export const GifPickerFooter = styled.div`
+  height: 32px;
+  background-color: #2b2d31;
+  border-top: 1px solid #1e1f22;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 16px;
+  color: #949ba4;
+  font-size: 11px;
+  user-select: none;
+`;
