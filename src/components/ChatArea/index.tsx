@@ -56,8 +56,7 @@ import {
   GifCategoryCard,
   GifResultGrid,
   GifItemImage,
-  GifPickerLoading,
-  GifPickerFooter
+  GifPickerLoading
 } from './styles';
 
 interface AudioPlayerProps {
