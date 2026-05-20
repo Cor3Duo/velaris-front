@@ -1317,20 +1317,27 @@ export const GifCategoryGrid = styled.div`
   gap: 8px;
 `;
 
-export const GifCategoryCard = styled.div<{ $bgUrl?: string }>`
+export const GifCategoryCard = styled.div`
   height: 90px;
   border-radius: 4px;
   position: relative;
   overflow: hidden;
   cursor: pointer;
-  background-image: ${props => props.$bgUrl ? `url(${props.$bgUrl})` : 'none'};
-  background-size: cover;
-  background-position: center;
   background-color: #2b2d31;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: transform 0.2s ease;
+
+  img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
+  }
 
   &::before {
     content: '';
@@ -1341,6 +1348,7 @@ export const GifCategoryCard = styled.div<{ $bgUrl?: string }>`
     bottom: 0;
     background: rgba(0, 0, 0, 0.45);
     transition: background 0.2s ease;
+    z-index: 2;
   }
 
   &:hover {

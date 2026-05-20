@@ -763,6 +763,7 @@ export function ChatArea() {
                               <AttachmentImage
                                 src={displayContent}
                                 alt="GIF/Imagem"
+                                referrerPolicy="no-referrer"
                                 onClick={() => setActiveLightboxImage({ url: displayContent, name: 'GIF/Imagem' })}
                                 style={{ marginTop: '8px', cursor: 'zoom-in' }}
                               />
@@ -777,6 +778,7 @@ export function ChatArea() {
                             <AttachmentImage
                               src={attachment.url.startsWith('http') ? attachment.url : `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${attachment.url}`}
                               alt={attachment.name || 'Imagem'}
+                              referrerPolicy="no-referrer"
                               onClick={() => setActiveLightboxImage({
                                 url: attachment!.url.startsWith('http') ? attachment!.url : `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${attachment!.url}`,
                                 name: attachment!.name || 'Imagem'
@@ -897,6 +899,7 @@ export function ChatArea() {
                     <img
                       src={selectedFile.url.startsWith('http') ? selectedFile.url : `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${selectedFile.url}`}
                       alt={selectedFile.name}
+                      referrerPolicy="no-referrer"
                     />
                   ) : (
                     <div className="file-icon-placeholder">
@@ -985,6 +988,7 @@ export function ChatArea() {
                         key={index}
                         src={url}
                         alt="GIF Result"
+                        referrerPolicy="no-referrer"
                         onClick={() => handleSendGif(url)}
                       />
                     ))}
@@ -999,9 +1003,9 @@ export function ChatArea() {
                   {GIF_CATEGORIES.map((category) => (
                     <GifCategoryCard
                       key={category.name}
-                      $bgUrl={category.bgUrl}
                       onClick={() => setGifSearchQuery(category.name)}
                     >
+                      <img src={category.bgUrl} alt={category.name} referrerPolicy="no-referrer" />
                       <span>{category.name}</span>
                     </GifCategoryCard>
                   ))}
@@ -1170,7 +1174,7 @@ export function ChatArea() {
           </LightboxToolbar>
 
           <LightboxContent onClick={(e) => e.stopPropagation()}>
-            <img src={activeLightboxImage.url} alt={activeLightboxImage.name} />
+            <img src={activeLightboxImage.url} alt={activeLightboxImage.name} referrerPolicy="no-referrer" />
           </LightboxContent>
         </LightboxOverlay>
       )}
